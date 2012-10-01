@@ -1,6 +1,28 @@
 VERSION 0.1-SNAPSHOT
 ========================
 
+2012-10-01:
+------------------------
+
+*** Many updates to contributor mechanism
+
+2012-09-28:
+------------------------
+
+*** Preparing for module architecture
+
+2012-09-27:
+------------------------
+
+*** Update to the way the XriResolutionServletEndpointInterceptor works
+
+*** Updates to applicationContext.xml to registry to use =danube and =!BDF3.1FB.E70C.3958 as examples
+
+2012-09-26:
+------------------------
+
+*** Updates to support latest multiplicity syntax (i.e. collections and entity singletons)
+
 2012-09-19:
 ------------------------
 

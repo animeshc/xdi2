@@ -24,13 +24,13 @@ import xdi2.core.features.multiplicity.Multiplicity;
  * @author markus
  */
 public final class LinkContract implements Serializable,
-		Comparable<LinkContract> {
+Comparable<LinkContract> {
 
 	private static final long serialVersionUID = 1604380462449272148L;
 
 	//The $do context node which represents this link contract in the graph
 	private ContextNode contextNode;
-	
+
 	private static final XRI3Segment XRI_SECRET_TOKEN = new XRI3Segment("" + Multiplicity.entitySingletonArcXri(new XRI3SubSegment("$secret")) + Multiplicity.attributeSingletonArcXri(new XRI3SubSegment("$token")));
 
 	private LinkContract(ContextNode contextNode) {
@@ -350,10 +350,6 @@ public final class LinkContract implements Serializable,
 		Relation r = null;
 		for (; allRelations.hasNext();) {
 			r = allRelations.next();
-			// System.out.println("Arc XRI=" + r.getArcXri());
-			// System.out.println("Relation XRI=" + r.getRelationXri());
-			// System.out.println("Context Node=" + r.getContextNode());
-			// System.out.println("XDI Statement=" + r.getStatement());
 			if (r.getArcXri().equals(perm)) {
 				ContextNode nodeWithPermission = r.follow();
 				if (nodeWithPermission.equals(targetNode)) {
