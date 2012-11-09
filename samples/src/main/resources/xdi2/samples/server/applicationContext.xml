@@ -52,6 +52,18 @@
 		</property>
 	</bean>
 
+	<bean id="allfiledContributor" class="xdi2.connector.allfiled.contributor.AllfiledContributor">
+		<property name="allfiledApi">
+			<bean class="xdi2.connector.allfiled.api.AllfiledApi" init-method="init" destroy-method="destroy">
+				<property name="appId" value="1372" />
+				<property name="appSecret" value="cRiet3ezo5cieniaqlubRi6MIedri15oUziupriek9a24oAstl" />
+			</bean>
+		</property>
+		<property name="allfiledMapping">
+			<bean class="xdi2.connector.allfiled.mapping.AllfiledMapping" />
+		</property>
+	</bean>
+
 	<bean id="prototypeGraphFactory" class="xdi2.core.impl.memory.MemoryGraphFactory">
 	</bean>
 
@@ -65,17 +77,19 @@
 					<property name="bootstrapLinkContract" value="true" />
 				</bean>
 				<bean class="xdi2.messaging.target.interceptor.impl.VariablesInterceptor" />
-				<bean class="xdi2.messaging.target.interceptor.impl.ExpandDollarIsInterceptor" />
+				<bean class="xdi2.messaging.target.interceptor.impl.DollarIsInterceptor" />
 				<bean class="xdi2.messaging.target.interceptor.impl.CheckOwnerInterceptor" />
 				<bean class="xdi2.messaging.target.interceptor.impl.LinkContractsInterceptor" />
 				<ref bean="facebookContributor" />
 				<ref bean="personalContributor" />
+				<ref bean="allfiledContributor" />
 			</util:list>
 		</property>
 		<property name="contributors">
 			<util:map>
-				<entry key="(https://facebook.com)" value-ref="facebookContributor" />
-				<entry key="(https://personal.com)" value-ref="personalContributor" />
+				<entry key="+(https://facebook.com/)" value-ref="facebookContributor" />
+				<entry key="+(https://personal.com/)" value-ref="personalContributor" />
+				<entry key="+(https://allfiled.com/)" value-ref="allfiledContributor" />
 			</util:map>
 		</property>
 	</bean>
@@ -88,7 +102,7 @@
 
 	<!-- MESSAGING TARGET FACTORY at /users/* -->
 
-	<bean id="registrygraphfactory" class="xdi2.core.impl.file.FileGraphFactory">
+	<bean id="registrygraphfactory" class="xdi2.core.impl.wrapped.file.FileGraphFactory">
 		<property name="path" value="registry.xdi" />
 		<property name="mimeType" value="text/xdi;contexts=0;ordered=1" />
 	</bean>
@@ -118,7 +132,7 @@
 					<property name="bootstrapLinkContract" value="true" />
 				</bean>
 				<bean class="xdi2.messaging.target.interceptor.impl.VariablesInterceptor" />
-				<bean class="xdi2.messaging.target.interceptor.impl.ExpandDollarIsInterceptor" />
+				<bean class="xdi2.messaging.target.interceptor.impl.DollarIsInterceptor" />
 				<bean class="xdi2.messaging.target.interceptor.impl.CheckOwnerInterceptor" />
 				<bean class="xdi2.messaging.target.interceptor.impl.LinkContractsInterceptor">
 					<property name="linkContractsGraph" ref="registrygraph" />
@@ -140,7 +154,7 @@
 		<property name="interceptors">
 			<util:list>
 				<bean class="xdi2.messaging.target.interceptor.impl.VariablesInterceptor" />
-				<bean class="xdi2.messaging.target.interceptor.impl.ExpandDollarIsInterceptor" />
+				<bean class="xdi2.messaging.target.interceptor.impl.DollarIsInterceptor" />
 			</util:list>
 		</property>
 	</bean>
@@ -158,7 +172,7 @@
 		<property name="interceptors">
 			<util:list>
 				<bean class="xdi2.messaging.target.interceptor.impl.VariablesInterceptor" />
-				<bean class="xdi2.messaging.target.interceptor.impl.ExpandDollarIsInterceptor" />
+				<bean class="xdi2.messaging.target.interceptor.impl.DollarIsInterceptor" />
 			</util:list>
 		</property>
 	</bean>
@@ -172,7 +186,7 @@
 		<property name="interceptors">
 			<util:list>
 				<bean class="xdi2.messaging.target.interceptor.impl.VariablesInterceptor" />
-				<bean class="xdi2.messaging.target.interceptor.impl.ExpandDollarIsInterceptor" />
+				<bean class="xdi2.messaging.target.interceptor.impl.DollarIsInterceptor" />
 			</util:list>
 		</property>
 	</bean>
@@ -200,7 +214,7 @@
 					<property name="bootstrapLinkContract" value="true" />
 				</bean>
 				<bean class="xdi2.messaging.target.interceptor.impl.VariablesInterceptor" />
-				<bean class="xdi2.messaging.target.interceptor.impl.ExpandDollarIsInterceptor" />
+				<bean class="xdi2.messaging.target.interceptor.impl.DollarIsInterceptor" />
 				<bean class="xdi2.messaging.target.interceptor.impl.CheckOwnerInterceptor" />
 				<bean class="xdi2.messaging.target.interceptor.impl.LinkContractsInterceptor">
 					<property name="linkContractsGraph" ref="graph4" />
