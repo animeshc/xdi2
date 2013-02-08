@@ -1,7 +1,7 @@
 package xdi2.core.constants;
 
-import xdi2.core.xri3.impl.XRI3Segment;
-import xdi2.core.xri3.impl.XRI3SubSegment;
+import xdi2.core.xri3.XDI3Segment;
+import xdi2.core.xri3.XDI3SubSegment;
 
 /**
  * General XDI constants.
@@ -10,20 +10,23 @@ import xdi2.core.xri3.impl.XRI3SubSegment;
  */
 public class XDIConstants {
 
-	public static final XRI3Segment XRI_S_ROOT = new XRI3Segment("()");
-	public static final XRI3Segment XRI_S_CONTEXT = new XRI3Segment("()");
-	public static final XRI3Segment XRI_S_LITERAL = new XRI3Segment("!");
+	public static final XDI3Segment XRI_S_ROOT = XDI3Segment.create("()");
+	public static final XDI3Segment XRI_S_CONTEXT = XDI3Segment.create("()");
+	public static final XDI3Segment XRI_S_LITERAL = XDI3Segment.create("!");
 
-	public static final XRI3Segment XRI_S_VARIABLE_SINGLE = new XRI3Segment("($)");
-	public static final XRI3Segment XRI_S_VARIABLE_MULTIPLE_LOCAL = new XRI3Segment("($$!)");
+	public static final XDI3Segment XRI_S_VARIABLE_SINGLE = XDI3Segment.create("($)");
+	public static final XDI3Segment XRI_S_VARIABLE_MULTIPLE_LOCAL = XDI3Segment.create("($$!)");
 
-	public static final XRI3Segment XRI_S_INCLUSION = new XRI3Segment("($)");
+	public static final XDI3Segment XRI_S_TRUE = XDI3Segment.create("$true");
+	public static final XDI3Segment XRI_S_FALSE = XDI3Segment.create("$false");
 
-	public static final XRI3Segment XRI_S_TRUE = new XRI3Segment("$true");
-	public static final XRI3Segment XRI_S_FALSE = new XRI3Segment("$false");
+	public static final XDI3SubSegment XRI_SS_TRUE = XDI3SubSegment.create("$true");
+	public static final XDI3SubSegment XRI_SS_FALSE = XDI3SubSegment.create("$false");
 
-	public static final XRI3SubSegment XRI_SS_CONTEXT = new XRI3SubSegment("()");
-	public static final XRI3SubSegment XRI_SS_LITERAL = new XRI3SubSegment("!");
+	public static final XDI3Segment XRI_S_PUBLIC = XDI3Segment.create("$public");
+
+	public static final XDI3SubSegment XRI_SS_CONTEXT = XDI3SubSegment.create("()");
+	public static final XDI3SubSegment XRI_SS_LITERAL = XDI3SubSegment.create("!");
 
 	private XDIConstants() { }
 }

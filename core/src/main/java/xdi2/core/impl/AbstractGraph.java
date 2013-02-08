@@ -13,17 +13,13 @@ import xdi2.core.GraphFactory;
 import xdi2.core.Literal;
 import xdi2.core.Relation;
 import xdi2.core.Statement;
-import xdi2.core.Statement.ContextNodeStatement;
-import xdi2.core.Statement.LiteralStatement;
-import xdi2.core.Statement.RelationStatement;
 import xdi2.core.exceptions.Xdi2RuntimeException;
 import xdi2.core.io.MimeType;
 import xdi2.core.io.XDIWriter;
 import xdi2.core.io.XDIWriterRegistry;
-import xdi2.core.util.XDIUtil;
 import xdi2.core.util.iterators.ReadOnlyIterator;
-import xdi2.core.xri3.impl.XRI3Segment;
-import xdi2.core.xri3.impl.XRI3SubSegment;
+import xdi2.core.xri3.XDI3Segment;
+import xdi2.core.xri3.XDI3Statement;
 
 public abstract class AbstractGraph implements Graph {
 
@@ -32,12 +28,12 @@ public abstract class AbstractGraph implements Graph {
 	private static final Logger log = LoggerFactory.getLogger(AbstractGraph.class);
 
 	private GraphFactory graphFactory;
-	
+
 	protected AbstractGraph(GraphFactory graphFactory) {
-		
+
 		this.graphFactory = graphFactory;
 	}
-	
+
 	/*
 	 * General methods
 	 */
@@ -47,7 +43,7 @@ public abstract class AbstractGraph implements Graph {
 
 		return this.graphFactory;
 	}
-	
+
 	@Override
 	public void clear() {
 
@@ -61,57 +57,69 @@ public abstract class AbstractGraph implements Graph {
 	}
 
 	@Override
-	public ContextNode findContextNode(XRI3Segment xri, boolean create) {
+	public ContextNode findContextNode(XDI3Segment contextNodeXri, boolean create) {
 
-		return this.getRootContextNode().findContextNode(xri, create);
+		return this.getRootContextNode().findContextNode(contextNodeXri, create);
 	}
 
 	@Override
-	public Relation findRelation(XRI3Segment xri, XRI3Segment arcXri, XRI3Segment targetContextNodeXri) {
+	public Relation findRelation(XDI3Segment contextNodeXri, XDI3Segment arcXri, XDI3Segment targetContextNodeXri) {
 
-		return this.getRootContextNode().findRelation(xri, arcXri, targetContextNodeXri);
+		return this.getRootContextNode().findRelation(contextNodeXri, arcXri, targetContextNodeXri);
 	}
 
 	@Override
-	public Relation findRelation(XRI3Segment xri, XRI3Segment arcXri) {
+	public Relation findRelation(XDI3Segment contextNodeXri, XDI3Segment arcXri) {
 
-		return this.getRootContextNode().findRelation(xri, arcXri);
+		return this.getRootContextNode().findRelation(contextNodeXri, arcXri);
 	}
 
 	@Override
-	public ReadOnlyIterator<Relation> findRelations(XRI3Segment xri, XRI3Segment arcXri) {
+	public ReadOnlyIterator<Relation> findRelations(XDI3Segment contextNodeXri, XDI3Segment arcXri) {
 
-		return this.getRootContextNode().findRelations(xri, arcXri);
+		return this.getRootContextNode().findRelations(contextNodeXri, arcXri);
 	}
 
 	@Override
-	public Literal findLiteral(XRI3Segment xri) {
+	public Literal findLiteral(XDI3Segment contextNodeXri, String literalData) {
 
-		return this.getRootContextNode().findLiteral(xri);
+		return this.getRootContextNode().findLiteral(contextNodeXri, literalData);
 	}
 
 	@Override
-	public boolean containsContextNode(XRI3Segment xri) {
+	public Literal findLiteral(XDI3Segment contextNodeXri) {
 
-		return this.findContextNode(xri, false) != null;
+		return this.getRootContextNode().findLiteral(contextNodeXri);
 	}
 
 	@Override
-	public boolean containsRelation(XRI3Segment xri, XRI3Segment arcXri, XRI3Segment targetContextNodeXri) {
+	public boolean containsContextNode(XDI3Segment contextNodeXri) {
 
-		return this.findRelation(xri, arcXri, targetContextNodeXri) != null;
+		return this.findContextNode(contextNodeXri, false) != null;
 	}
 
 	@Override
-	public boolean containsRelations(XRI3Segment xri, XRI3Segment arcXri) {
+	public boolean containsRelation(XDI3Segment contextNodeXri, XDI3Segment arcXri, XDI3Segment targetContextNodeXri) {
 
-		return this.findRelation(xri, arcXri) != null;
+		return this.findRelation(contextNodeXri, arcXri, targetContextNodeXri) != null;
 	}
 
 	@Override
-	public boolean containsLiteral(XRI3Segment xri) {
+	public boolean containsRelations(XDI3Segment contextNodeXri, XDI3Segment arcXri) {
 
-		return this.findLiteral(xri) != null;
+		return this.findRelation(contextNodeXri, arcXri) != null;
+	}
+
+	@Override
+	public boolean containsLiteral(XDI3Segment contextNodeXri, String literalData) {
+
+		return this.findLiteral(contextNodeXri, literalData) != null;
+	}
+
+	@Override
+	public boolean containsLiteral(XDI3Segment contextNodeXri) {
+
+		return this.findLiteral(contextNodeXri) != null;
 	}
 
 	@Override
@@ -139,6 +147,8 @@ public abstract class AbstractGraph implements Graph {
 		if (mimeType == null) throw new NullPointerException();
 
 		XDIWriter writer = XDIWriterRegistry.forMimeType(mimeType);
+		if (writer == null) throw new Xdi2RuntimeException("Unknown MIME type for XDI serialization: " + mimeType);
+
 		StringWriter buffer = new StringWriter();
 
 		try {
@@ -157,36 +167,62 @@ public abstract class AbstractGraph implements Graph {
 	 */
 
 	@Override
-	public Statement addStatement(Statement statement) {
+	public Statement createStatement(XDI3Statement statementXri) {
 
-		XRI3Segment subject = statement.getSubject();
-		XRI3Segment predicate = statement.getPredicate();
-		XRI3Segment object = statement.getObject();
+		ContextNode contextNode = this.findContextNode(statementXri.getSubject(), true);
 
-		ContextNode contextNode = this.findContextNode(subject, true);
+		if (statementXri.isContextNodeStatement()) {
 
-		if (statement instanceof ContextNodeStatement) {
-
-			ContextNode innerContextNode = contextNode.createContextNode(new XRI3SubSegment(object.toString()));
-			if (log.isTraceEnabled()) log.trace("Under " + contextNode.getXri() + ": Created context node " + innerContextNode.getArcXri() + " --> " + innerContextNode.getXri());
+			ContextNode innerContextNode = contextNode.createContextNodes(statementXri.getObject());
+			if (log.isTraceEnabled()) log.trace("Under " + contextNode.getXri() + ": Created context node --> " + innerContextNode.getXri());
 
 			return innerContextNode.getStatement();
-		} else if (statement instanceof LiteralStatement) {
+		} else if (statementXri.isRelationStatement()) {
 
-			Literal literal = contextNode.createLiteral(XDIUtil.dataXriSegmentToString(object));
-			if (log.isTraceEnabled()) log.trace("Under " + contextNode.getXri() + ": Created literal --> " + literal.getLiteralData());
-
-			return literal.getStatement();
-		} else if (statement instanceof RelationStatement) {
-
-			Relation relation = contextNode.createRelation(predicate, object);
+			Relation relation = contextNode.createRelation(statementXri.getArcXri(), statementXri.getTargetContextNodeXri());
 			if (log.isTraceEnabled()) log.trace("Under " + contextNode.getXri() + ": Created relation " + relation.getArcXri() + " --> " + relation.getTargetContextNodeXri());
 
 			return relation.getStatement();
+		} else if (statementXri.isLiteralStatement()) {
+
+			Literal literal = contextNode.createLiteral(statementXri.getLiteralData());
+			if (log.isTraceEnabled()) log.trace("Under " + contextNode.getXri() + ": Created literal --> " + literal.getLiteralData());
+
+			return literal.getStatement();
 		} else {
 
-			throw new Xdi2RuntimeException("Unknown statement type: " + statement.getClass().getCanonicalName());
+			throw new Xdi2RuntimeException("Invalid statement XRI: " + statementXri);
 		}
+	}
+
+	@Override
+	public Statement findStatement(XDI3Statement statementXri) {
+
+		if (statementXri.isContextNodeStatement()) {
+
+			ContextNode contextNode = this.findContextNode(statementXri.getSubject(), false);
+			contextNode = contextNode == null ? null : contextNode.findContextNode(statementXri.getObject(), false);
+
+			return contextNode == null ? null : contextNode.getStatement();
+		} else if (statementXri.isRelationStatement()) {
+
+			Relation relation = this.findRelation(statementXri.getSubject(), statementXri.getArcXri(), statementXri.getTargetContextNodeXri());
+
+			return relation == null ? null : relation.getStatement();
+		} else if (statementXri.isLiteralStatement()) {
+
+			Literal literal = this.findLiteral(statementXri.getSubject(), statementXri.getLiteralData());
+
+			return literal == null ? null : literal.getStatement();
+		}
+
+		return null;
+	}
+
+	@Override
+	public boolean containsStatement(XDI3Statement statementXri) {
+
+		return this.findStatement(statementXri) != null;
 	}
 
 	/*

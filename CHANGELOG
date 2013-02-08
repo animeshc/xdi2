@@ -1,7 +1,72 @@
 VERSION 0.1-SNAPSHOT
 ========================
 
+2013-01-31:
+------------------------
+
+*** much work on parser and graph model
+
+*** introduced APG in addition to aParse
+
+2013-01-28:
+------------------------
+
+*** create() factory method for parsing XRI syntax
+
+2013-01-14:
+------------------------
+
+*** updated "i am" statements
+
+2013-01-05:
+------------------------
+
+*** support for declarative policies
+
+*** some work to support visualization of graphs
+
+2012-12-29:
+------------------------
+
+*** many API updates to support the "statement" ABNF rule
+
+2012-12-27:
+------------------------
+
+*** some updates to core graph API
+
+*** adding StatementCondition to policy syntax
+
+2012-12-26:
+------------------------
+
+*** many updates to support $is, $ref and $ref!
+
+*** support for declarative link contract policies
+
+*** updates to XDI Local Messenger
+
+2012-12-21:
+------------------------
+
+*** many updates to support $is, $ref and $ref!
+
+2012-12-13:
+------------------------
+
+*** small update to contributor mechanism
+
+2012-12-04:
+------------------------
+
+*** bugfix in DollarIsInterceptor
+
+*** support for $public link contract
+
+*** some work on XDI Discovery
+
 2012-11-10:
+------------------------
 
 *** experimental implementation of $is!, $get*, $get!
 

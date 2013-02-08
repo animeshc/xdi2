@@ -3,11 +3,11 @@ package xdi2.messaging;
 import java.io.Serializable;
 
 import xdi2.core.Relation;
-import xdi2.core.Statement;
 import xdi2.core.exceptions.Xdi2ParseException;
 import xdi2.core.util.StatementUtil;
 import xdi2.core.util.XRIUtil;
-import xdi2.core.xri3.impl.XRI3Segment;
+import xdi2.core.xri3.XDI3Segment;
+import xdi2.core.xri3.XDI3Statement;
 
 /**
  * An XDI messaging operation, represented as a relation.
@@ -44,7 +44,8 @@ public abstract class Operation implements Serializable, Comparable<Operation> {
 				GetOperation.isValid(relation) ||
 				AddOperation.isValid(relation) ||
 				ModOperation.isValid(relation) ||
-				DelOperation.isValid(relation);
+				DelOperation.isValid(relation) ||
+				DoOperation.isValid(relation);
 	}
 
 	/**
@@ -59,6 +60,7 @@ public abstract class Operation implements Serializable, Comparable<Operation> {
 		if (AddOperation.isValid(relation)) return AddOperation.fromMessageAndRelation(message, relation);
 		if (ModOperation.isValid(relation)) return ModOperation.fromMessageAndRelation(message, relation);
 		if (DelOperation.isValid(relation)) return DelOperation.fromMessageAndRelation(message, relation);
+		if (DoOperation.isValid(relation)) return DoOperation.fromMessageAndRelation(message, relation);
 
 		return null;
 	}
@@ -108,7 +110,7 @@ public abstract class Operation implements Serializable, Comparable<Operation> {
 
 	/**
 	 * Returns the underlying relation to which this XDI operation is bound.
-	 * @return A relation that represents an XDI operation.
+	 * @return A relation that represents the XDI operation.
 	 */
 	public Relation getRelation() {
 
@@ -116,19 +118,19 @@ public abstract class Operation implements Serializable, Comparable<Operation> {
 	}
 
 	/**
-	 * Returns the operation XRI of the operation (e.g. $get, $mod).
-	 * @return The operation XRI of the operation.
+	 * Returns the operation XRI of the XDI operation (e.g. $get, $mod).
+	 * @return The operation XRI of the XDI operation.
 	 */
-	public XRI3Segment getOperationXri() {
+	public XDI3Segment getOperationXri() {
 
 		return this.getRelation().getArcXri();
 	}
 
 	/**
-	 * Returns the operation extension XRI of the operation.
-	 * @return The operation extension XRI of the operation.
+	 * Returns the operation extension XRI of the XDI operation.
+	 * @return The operation extension XRI of the XDI operation.
 	 */
-	public XRI3Segment getOperationExtensionXri() {
+	public XDI3Segment getOperationExtensionXri() {
 
 		return XRIUtil.localXri(this.getOperationXri(), -1);
 	}
@@ -137,12 +139,16 @@ public abstract class Operation implements Serializable, Comparable<Operation> {
 	 * Returns the target of the operation.
 	 * @return The target of the operation.
 	 */
-	public XRI3Segment getTarget() {
+	public XDI3Segment getTarget() {
 
 		return this.getRelation().getTargetContextNodeXri();
 	}
 
-	public Statement getTargetStatement() {
+	/**
+	 * Returns the target statement of the operation.
+	 * @return The target statement of the operation.
+	 */
+	public XDI3Statement getTargetStatement() {
 
 		try {
 
@@ -153,7 +159,11 @@ public abstract class Operation implements Serializable, Comparable<Operation> {
 		}
 	}
 
-	public XRI3Segment getTargetAddress() {
+	/**
+	 * Returns the target address of the operation.
+	 * @return The target address of the operation.
+	 */
+	public XDI3Segment getTargetAddress() {
 
 		try {
 
@@ -169,7 +179,7 @@ public abstract class Operation implements Serializable, Comparable<Operation> {
 	 * Returns the sender of the message's message collection.
 	 * @return The sender of the message's message collection.
 	 */
-	public XRI3Segment getSender() {
+	public XDI3Segment getSender() {
 
 		return this.getMessage().getMessageCollection().getSender();
 	}

@@ -10,13 +10,13 @@ import org.slf4j.LoggerFactory;
 import xdi2.core.Graph;
 import xdi2.core.io.XDIReader;
 import xdi2.core.io.XDIReaderRegistry;
-import xdi2.core.xri3.impl.XRI3Segment;
+import xdi2.core.xri3.XDI3Segment;
 import xdi2.messaging.MessageEnvelope;
 import xdi2.messaging.MessageResult;
 import xdi2.messaging.constants.XDIMessagingConstants;
 import xdi2.messaging.exceptions.Xdi2MessagingException;
 import xdi2.messaging.target.impl.graph.GraphMessagingTarget;
-import xdi2.messaging.target.interceptor.impl.DollarIsInterceptor;
+import xdi2.messaging.target.interceptor.impl.RefInterceptor;
 
 public abstract class AbstractGraphMessagingTargetTest extends TestCase {
 
@@ -35,12 +35,12 @@ public abstract class AbstractGraphMessagingTargetTest extends TestCase {
 		MessageEnvelope messageEnvelope1 = MessageEnvelope.fromOperationXriAndStatement(XDIMessagingConstants.XRI_S_ADD, "=markus/+friend/=giovanni");
 		MessageResult messageResult1 = new MessageResult();
 		graphMessagingTarget.execute(messageEnvelope1, messageResult1, null);
-		assertEquals(graph.findRelation(new XRI3Segment("=markus"), new XRI3Segment("+friend")).getTargetContextNodeXri(), new XRI3Segment("=giovanni"));
+		assertEquals(graph.findRelation(XDI3Segment.create("=markus"), XDI3Segment.create("+friend")).getTargetContextNodeXri(), XDI3Segment.create("=giovanni"));
 
-		MessageEnvelope messageEnvelope2 = MessageEnvelope.fromOperationXriAndTargetXri(XDIMessagingConstants.XRI_S_GET, new XRI3Segment("=markus"));
+		MessageEnvelope messageEnvelope2 = MessageEnvelope.fromOperationXriAndTargetXri(XDIMessagingConstants.XRI_S_GET, XDI3Segment.create("=markus"));
 		MessageResult messageResult2 = new MessageResult();
 		graphMessagingTarget.execute(messageEnvelope2, messageResult2, null);
-		assertEquals(messageResult2.getGraph().findRelation(new XRI3Segment("=markus"), new XRI3Segment("+friend")).getTargetContextNodeXri(), new XRI3Segment("=giovanni"));
+		assertEquals(messageResult2.getGraph().findRelation(XDI3Segment.create("=markus"), XDI3Segment.create("+friend")).getTargetContextNodeXri(), XDI3Segment.create("=giovanni"));
 	}
 
 	public void testGraphMessagingTarget() throws Exception {
@@ -56,7 +56,7 @@ public abstract class AbstractGraphMessagingTargetTest extends TestCase {
 
 			GraphMessagingTarget graphMessagingTarget = new GraphMessagingTarget();
 			graphMessagingTarget.setGraph(graph);
-			graphMessagingTarget.getInterceptors().addInterceptor(new DollarIsInterceptor());
+			graphMessagingTarget.getInterceptors().addInterceptor(new RefInterceptor());
 
 			log.info("Graph " + i);
 

@@ -20,7 +20,7 @@
 
 	<% if (request.getAttribute("error") != null) { %>
 			
-		<p><font color="red"><%= request.getAttribute("error") != null ? request.getAttribute("error") : "" %></font></p>
+		<p style="font-family: monospace; white-space: pre; color: red;"><%= request.getAttribute("error") != null ? request.getAttribute("error") : "" %></p>
 
 	<% } %>
 
@@ -39,6 +39,7 @@
 		<option value="AUTO" <%= from.equals("AUTO") ? "selected" : "" %>>auto-detect</option>
 		<option value="XDI/JSON" <%= from.equals("XDI/JSON") ? "selected" : "" %>>XDI/JSON</option>
 		<option value="XDI DISPLAY" <%= from.equals("XDI DISPLAY") ? "selected" : "" %>>XDI DISPLAY</option>
+		<option value="RAW JSON" <%= from.equals("RAW JSON") ? "selected" : "" %>>RAW JSON</option>
 		</select>
 		to:
 		<select name="resultFormat">

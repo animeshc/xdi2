@@ -4,11 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.Properties;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,9 +22,15 @@ import xdi2.core.impl.memory.MemoryGraphFactory;
 import xdi2.core.io.AbstractXDIReader;
 import xdi2.core.io.MimeType;
 import xdi2.core.util.StatementUtil;
-import xdi2.core.xri3.impl.XRI3Segment;
-import xdi2.core.xri3.impl.XRI3SubSegment;
-import xdi2.core.xri3.impl.parser.ParserException;
+import xdi2.core.xri3.XDI3Segment;
+import xdi2.core.xri3.XDI3Statement;
+import xdi2.core.xri3.XDI3SubSegment;
+import xdi2.core.xri3.parser.aparse.ParserException;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
 
 public class XDIJSONReader extends AbstractXDIReader {
 
@@ -50,24 +54,23 @@ public class XDIJSONReader extends AbstractXDIReader {
 
 	public void read(Graph graph, JSONObject graphObject, State state) throws IOException, Xdi2ParseException, JSONException {
 
-		for (Iterator<?> keys = graphObject.keys(); keys.hasNext(); ) {
+		for (Entry<String, Object> entry : graphObject.entrySet()) {
 
-			String key = (String) keys.next();
-			JSONArray value = graphObject.getJSONArray(key);
+			if (! (entry.getValue() instanceof JSONArray)) throw new Xdi2ParseException("Value for key " + entry.getKey() + " must be a JSON array");
 
-			Statement statement = makeStatement(key + "/($)", state);
-			XRI3Segment subject = statement.getSubject();
-			XRI3Segment predicate = statement.getPredicate();
+			String key = entry.getKey();
+			JSONArray value = (JSONArray) entry.getValue();
 
-			ContextNode contextNode = graph.findContextNode(subject, true);
+			if (key.endsWith("/" + XDIConstants.XRI_S_CONTEXT.toString())) {
 
-			if (predicate.equals(XDIConstants.XRI_S_CONTEXT)) {
+				XDI3Statement statement = makeStatement(key + "/($)", state);
+				ContextNode contextNode = graph.findContextNode(statement.getSubject(), true);
 
 				// add context nodes
 
-				for (int i=0; i<value.length(); i++) {
+				for (int i=0; i<value.size(); i++) {
 
-					XRI3SubSegment arcXri = makeXRI3SubSegment(value.getString(i), state);
+					XDI3SubSegment arcXri = makeXDI3SubSegment(value.getString(i), state);
 
 					// ignore implied context nodes
 
@@ -80,11 +83,14 @@ public class XDIJSONReader extends AbstractXDIReader {
 						if (log.isTraceEnabled()) log.trace("Under " + contextNode.getXri() + ": Created context node " + innerContextNode.getArcXri() + " --> " + innerContextNode.getXri());
 					}
 				}
-			} else if (predicate.equals(XDIConstants.XRI_S_LITERAL)) {
+			} else if (key.endsWith("/" + XDIConstants.XRI_S_LITERAL.toString())) {
+
+				XDI3Statement statement = makeStatement(key + "/($)", state);
+				ContextNode contextNode = graph.findContextNode(statement.getSubject(), true);
 
 				// add literal
 
-				if (value.length() != 1) throw new Xdi2ParseException("JSON array for key " + key + " must have exactly one item");
+				if (value.size() != 1) throw new Xdi2ParseException("JSON array for key " + key + " must have exactly one item");
 
 				String literalData = value.getString(0);
 
@@ -92,11 +98,13 @@ public class XDIJSONReader extends AbstractXDIReader {
 				if (log.isTraceEnabled()) log.trace("Under " + contextNode.getXri() + ": Created literal --> " + literal.getLiteralData());
 			} else {
 
+				XDI3Statement statement = makeStatement(key + "/()", state);
+				ContextNode contextNode = graph.findContextNode(statement.getSubject(), true);
+				XDI3Segment arcXri = statement.getPredicate();
+
 				// add relations
 
-				XRI3Segment arcXri = predicate;
-
-				for (int i=0; i<value.length(); i++) {
+				for (int i=0; i<value.size(); i++) {
 
 					String valueString = value.getString(i);
 
@@ -106,7 +114,7 @@ public class XDIJSONReader extends AbstractXDIReader {
 
 					try {
 
-						jsonObject = new JSONObject(valueString);
+						jsonObject = JSON.parseObject(valueString);
 					} catch (JSONException ex) {
 
 					}
@@ -123,7 +131,7 @@ public class XDIJSONReader extends AbstractXDIReader {
 							Statement innerStatement = innerStatements.next();
 							if (StatementUtil.isImplied(innerStatement)) continue;
 
-							XRI3Segment innerTargetContextNodeXri = makeXRI3Segment("(" + innerStatement.toString() + ")", state);
+							XDI3Segment innerTargetContextNodeXri = makeXDI3Segment("(" + innerStatement.toString() + ")", state);
 
 							Relation innerRelation = contextNode.createRelation(arcXri, innerTargetContextNodeXri);
 							if (log.isTraceEnabled()) log.trace("Under " + contextNode.getXri() + ": Created relation " + innerRelation.getArcXri() + " --> " + innerRelation.getTargetContextNodeXri());
@@ -131,10 +139,12 @@ public class XDIJSONReader extends AbstractXDIReader {
 
 						innerGraph.close();*/
 
-						for (Iterator<?> innerKeys = jsonObject.keys(); innerKeys.hasNext(); ) {
+						for (Entry<String, Object> innerEntry : jsonObject.entrySet()) {
 
-							String innerKey = (String) innerKeys.next();
-							JSONArray innerValue = jsonObject.getJSONArray(innerKey);
+							if (! (entry.getValue() instanceof JSONArray)) throw new Xdi2ParseException("Value for key " + entry.getKey() + " must be a JSON array");
+
+							String innerKey = (String) innerEntry.getKey();
+							JSONArray innerValue = (JSONArray) innerEntry.getValue();
 
 							JSONObject innerJSONObject = new JSONObject();
 							innerJSONObject.put(innerKey, innerValue);
@@ -150,7 +160,7 @@ public class XDIJSONReader extends AbstractXDIReader {
 
 								//String innerValueString = ("(" + tempGraph.toString(new MimeType("text/xdi")) + ")").replaceAll("[ \n]", "");
 								String innerValueString = ("(" + innerStatement.toString() + ")");
-								XRI3Segment innerTargetContextNodeXri = makeXRI3Segment(innerValueString, state);
+								XDI3Segment innerTargetContextNodeXri = makeXDI3Segment(innerValueString, state);
 
 								Relation relation = contextNode.createRelation(arcXri, innerTargetContextNodeXri);
 								if (log.isTraceEnabled()) log.trace("Under " + contextNode.getXri() + ": Created relation " + relation.getArcXri() + " --> " + relation.getTargetContextNodeXri());
@@ -158,7 +168,7 @@ public class XDIJSONReader extends AbstractXDIReader {
 						}
 					} else {
 
-						XRI3Segment targetContextNodeXri = makeXRI3Segment(valueString, state);
+						XDI3Segment targetContextNodeXri = makeXDI3Segment(valueString, state);
 
 						Relation relation = contextNode.createRelation(arcXri, targetContextNodeXri);
 						if (log.isTraceEnabled()) log.trace("Under " + contextNode.getXri() + ": Created relation " + relation.getArcXri() + " --> " + relation.getTargetContextNodeXri());
@@ -178,7 +188,7 @@ public class XDIJSONReader extends AbstractXDIReader {
 			graphString.append(line + "\n");
 		}
 
-		this.read(graph, new JSONObject(graphString.toString()), state);
+		this.read(graph, JSON.parseObject(graphString.toString()), state);
 	}
 
 	@Override
@@ -208,21 +218,21 @@ public class XDIJSONReader extends AbstractXDIReader {
 		private String lastXriString;
 	}
 
-	private static Statement makeStatement(String xriString, State state) throws Xdi2ParseException {
+	private static XDI3Statement makeStatement(String xriString, State state) throws Xdi2ParseException {
 
 		state.lastXriString = xriString;
-		return StatementUtil.fromString(xriString);
+		return XDI3Statement.create(xriString);
 	}
 
-	private static XRI3Segment makeXRI3Segment(String xriString, State state) {
+	private static XDI3Segment makeXDI3Segment(String xriString, State state) {
 
 		state.lastXriString = xriString;
-		return new XRI3Segment(xriString);
+		return XDI3Segment.create(xriString);
 	}
 
-	private static XRI3SubSegment makeXRI3SubSegment(String xriString, State state) {
+	private static XDI3SubSegment makeXDI3SubSegment(String xriString, State state) {
 
 		state.lastXriString = xriString;
-		return new XRI3SubSegment(xriString);
+		return XDI3SubSegment.create(xriString);
 	}
 }

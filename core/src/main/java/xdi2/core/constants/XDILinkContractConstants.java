@@ -1,8 +1,8 @@
 package xdi2.core.constants;
 
 import xdi2.core.features.multiplicity.Multiplicity;
-import xdi2.core.xri3.impl.XRI3Segment;
-import xdi2.core.xri3.impl.XRI3SubSegment;
+import xdi2.core.xri3.XDI3Segment;
+import xdi2.core.xri3.XDI3SubSegment;
 
 /**
  * Constants for XDI link contracts.
@@ -11,32 +11,32 @@ import xdi2.core.xri3.impl.XRI3SubSegment;
  */
 public final class XDILinkContractConstants {
 
-	public static final XRI3Segment XRI_S_DO = new XRI3Segment("$do");
+	public static final XDI3Segment XRI_S_DO = XDI3Segment.create("$do");
+	public static final XDI3Segment XRI_S_IF = XDI3Segment.create("$if");
 
-	public static final XRI3Segment XRI_S_IS_DO = new XRI3Segment("$is$do");
+	public static final XDI3SubSegment XRI_SS_DO = XDI3SubSegment.create("$do");
+	public static final XDI3SubSegment XRI_SS_IF = XDI3SubSegment.create("$if");
 
-	public static final XRI3SubSegment XRI_SS_DO = new XRI3SubSegment("$do");
-	public static final XRI3SubSegment XRI_SS_IF = new XRI3SubSegment("$if");
+	public static final XDI3Segment XRI_S_ALL = XDI3Segment.create("$all");
+	public static final XDI3Segment XRI_S_GET = XDI3Segment.create("$get");
+	public static final XDI3Segment XRI_S_ADD = XDI3Segment.create("$add");
+	public static final XDI3Segment XRI_S_MOD = XDI3Segment.create("$mod");
+	public static final XDI3Segment XRI_S_DEL = XDI3Segment.create("$del");
 
-	public static final XRI3Segment XRI_S_GET = new XRI3Segment("$get");
-	public static final XRI3Segment XRI_S_ALL = new XRI3Segment("$all");
+	public static final XDI3SubSegment XRI_SS_ALL = XDI3SubSegment.create("$all");
+	public static final XDI3SubSegment XRI_SS_GET = XDI3SubSegment.create("$get");
+	public static final XDI3SubSegment XRI_SS_ADD = XDI3SubSegment.create("$add");
+	public static final XDI3SubSegment XRI_SS_MOD = XDI3SubSegment.create("$mod");
+	public static final XDI3SubSegment XRI_SS_DEL = XDI3SubSegment.create("$del");
 
-	public static final XRI3Segment XRI_S_ADD = new XRI3Segment("$add");
-	public static final XRI3Segment XRI_S_MOD = new XRI3Segment("$mod");
+	public static final XDI3SubSegment XRI_SS_AND = Multiplicity.entitySingletonArcXri(XDI3SubSegment.create("$and"));
+	public static final XDI3SubSegment XRI_SS_OR = Multiplicity.entitySingletonArcXri(XDI3SubSegment.create("$or"));
+	public static final XDI3SubSegment XRI_SS_NOT = Multiplicity.entitySingletonArcXri(XDI3SubSegment.create("$not"));
 
-	public static final XRI3Segment XRI_S_DEL = new XRI3Segment("$del");
-	public static final XRI3Segment XRI_S_VARIABLE_REF = new XRI3Segment("($)");
-
-	public static final XRI3SubSegment XRI_SS_GET = new XRI3SubSegment("$get");
-	public static final XRI3SubSegment XRI_SS_ALL = new XRI3SubSegment("$all");
-	public static final XRI3SubSegment XRI_SS_ADD = new XRI3SubSegment("$add");
-	public static final XRI3SubSegment XRI_SS_MOD = new XRI3SubSegment("$mod");
-	public static final XRI3SubSegment XRI_SS_DEL = new XRI3SubSegment("$del");
-
-	public static final XRI3SubSegment XRI_SS_AND = Multiplicity.collectionArcXri(new XRI3SubSegment("$and"));
-	public static final XRI3SubSegment XRI_SS_OR = Multiplicity.collectionArcXri(new XRI3SubSegment("$or"));
-	public static final XRI3SubSegment XRI_SS_NOT = Multiplicity.attributeSingletonArcXri(new XRI3SubSegment("$not"));
-	public static final XRI3SubSegment XRI_SS_VARIABLE_REF = new XRI3SubSegment("($)");
+	public static final XDI3Segment XRI_S_EQUALS = XDI3Segment.create("$equals");
+	public static final XDI3Segment XRI_S_GREATER = XDI3Segment.create("$greater");
+	public static final XDI3Segment XRI_S_LESSER = XDI3Segment.create("$lesser");
+	public static final XDI3Segment XRI_S_IS = XDI3Segment.create("$is");
 
 	private XDILinkContractConstants() { }
 }

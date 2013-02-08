@@ -2,7 +2,7 @@ package xdi2.messaging;
 
 import xdi2.core.Relation;
 import xdi2.core.util.XRIUtil;
-import xdi2.core.xri3.impl.XRI3Segment;
+import xdi2.core.xri3.XDI3Segment;
 import xdi2.messaging.constants.XDIMessagingConstants;
 
 /**
@@ -14,7 +14,7 @@ public class GetOperation extends Operation {
 
 	private static final long serialVersionUID = -1452297650590584104L;
 
-	public static final XRI3Segment XRI_EXTENSION_BANG = new XRI3Segment("!");
+	public static final XDI3Segment XRI_EXTENSION_BANG = XDI3Segment.create("!");
 
 	protected GetOperation(Message message, Relation relation) {
 
@@ -28,7 +28,7 @@ public class GetOperation extends Operation {
 	/**
 	 * Checks if an relation is a valid XDI $get operation.
 	 * @param relation The relation to check.
-	 * @return True if the relation is a valid XDI operation.
+	 * @return True if the relation is a valid XDI $get operation.
 	 */
 	public static boolean isValid(Relation relation) {
 
@@ -39,7 +39,7 @@ public class GetOperation extends Operation {
 	}
 
 	/**
-	 * Factory method that creates an XDI operation bound to a given relation.
+	 * Factory method that creates an XDI $get operation bound to a given relation.
 	 * @param relation The relation that is an XDI $get operation.
 	 * @return The XDI $get operation.
 	 */

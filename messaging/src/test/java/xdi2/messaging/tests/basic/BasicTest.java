@@ -10,7 +10,7 @@ import xdi2.core.features.linkcontracts.LinkContract;
 import xdi2.core.features.linkcontracts.LinkContracts;
 import xdi2.core.impl.memory.MemoryGraphFactory;
 import xdi2.core.io.XDIReaderRegistry;
-import xdi2.core.xri3.impl.XRI3Segment;
+import xdi2.core.xri3.XDI3Segment;
 import xdi2.messaging.AddOperation;
 import xdi2.messaging.DelOperation;
 import xdi2.messaging.GetOperation;
@@ -23,15 +23,15 @@ import xdi2.messaging.constants.XDIMessagingConstants;
 
 public class BasicTest extends TestCase {
 
-	private static final XRI3Segment SENDER = new XRI3Segment("=sender");
+	private static final XDI3Segment SENDER = XDI3Segment.create("=sender");
 
-	private static final XRI3Segment TARGET = new XRI3Segment("=markus");
+	private static final XDI3Segment TARGET = XDI3Segment.create("=markus");
 
-	private static final XRI3Segment CONTEXTNODEXRIS[] = new XRI3Segment[] {
-		new XRI3Segment("=markus+email"),
-		new XRI3Segment("=markus"),
-		new XRI3Segment("=markus+friends"),
-		new XRI3Segment("=markus+name+last")
+	private static final XDI3Segment CONTEXTNODEXRIS[] = new XDI3Segment[] {
+		XDI3Segment.create("=markus+email"),
+		XDI3Segment.create("=markus"),
+		XDI3Segment.create("=markus+friends"),
+		XDI3Segment.create("=markus+name+last")
 	};
 
 	public void testMessagingOverview() throws Exception {
@@ -54,7 +54,7 @@ public class BasicTest extends TestCase {
 
 		MessageCollection messageCollection = messageEnvelope.getMessageCollection(SENDER, true);
 
-		assertTrue(MessageCollection.isValid(messageCollection.getEntityCollection()));
+		assertTrue(MessageCollection.isValid(messageCollection.getCollection()));
 
 		assertTrue(messageEnvelope.getMessageCollections().hasNext());
 		assertNotNull(messageEnvelope.getMessageCollection(SENDER, false));
@@ -182,7 +182,7 @@ public class BasicTest extends TestCase {
 
 	public void testMessagingSimple2() throws Exception {
 
-		XRI3Segment sender = new XRI3Segment("=!1111");
+		XDI3Segment sender = XDI3Segment.create("=!1111");
 
 		GregorianCalendar calendar = new GregorianCalendar(2010, 11, 22, 22, 22, 22);
 		calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -194,23 +194,22 @@ public class BasicTest extends TestCase {
 		MessageCollection messageCollection = messageEnvelope.getMessageCollection(sender, false);
 		Message message = messageCollection.getMessage(false);
 
-		assertEquals(message.getLinkContractXri(), new XRI3Segment("$(=!2222)$(!1)$do"));
+		assertEquals(message.getLinkContractXri(), XDI3Segment.create("$(=!2222)$(!1)$do"));
 		LinkContract linkContract = LinkContracts.findLinkContractByAddress(messageEnvelope.getGraph(), message.getLinkContractXri());
 		assertNotNull(linkContract);
-		assertEquals(linkContract.getAssignees().next().getXri(), sender);
 
-		assertEquals(message.getSenderAuthority(), new XRI3Segment("(=!1111)(!3)"));
-		assertEquals(message.getRecipientAuthority(), new XRI3Segment("(=!2222)"));
+		assertEquals(message.getSenderAuthority(), XDI3Segment.create("(=!1111)(!3)"));
+		assertEquals(message.getRecipientAuthority(), XDI3Segment.create("(=!2222)"));
 		assertEquals(message.getTimestamp(), calendar.getTime());
 	}
 
 	public void testSenderAndRecipientAuthority() throws Exception {
 
 		MessageEnvelope messageEnvelope = new MessageEnvelope();
-		Message message = messageEnvelope.getMessage(new XRI3Segment("=sender"), true);
-		message.setSenderAuthority(new XRI3Segment("(=!1111)"));
-		message.setRecipientAuthority(new XRI3Segment("(=!2222)"));
-		assertEquals(message.getSenderAuthority(), new XRI3Segment("(=!1111)"));
-		assertEquals(message.getRecipientAuthority(), new XRI3Segment("(=!2222)"));
+		Message message = messageEnvelope.getMessage(XDI3Segment.create("=sender"), true);
+		message.setSenderAuthority(XDI3Segment.create("(=!1111)"));
+		message.setRecipientAuthority(XDI3Segment.create("(=!2222)"));
+		assertEquals(message.getSenderAuthority(), XDI3Segment.create("(=!1111)"));
+		assertEquals(message.getRecipientAuthority(), XDI3Segment.create("(=!2222)"));
 	}
 }

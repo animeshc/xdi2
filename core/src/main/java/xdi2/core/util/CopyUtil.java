@@ -1,6 +1,10 @@
 package xdi2.core.util;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +13,11 @@ import xdi2.core.ContextNode;
 import xdi2.core.Graph;
 import xdi2.core.Literal;
 import xdi2.core.Relation;
-import xdi2.core.xri3.impl.XRI3Segment;
+import xdi2.core.Statement;
+import xdi2.core.Statement.ContextNodeStatement;
+import xdi2.core.Statement.LiteralStatement;
+import xdi2.core.Statement.RelationStatement;
+import xdi2.core.xri3.XDI3Segment;
 
 /**
  * Various utility methods for copying statements between graphs.
@@ -59,7 +67,7 @@ public final class CopyUtil {
 			targetContextNode = targetGraph.getRootContextNode();
 		} else {
 
-			XRI3Segment parentContextNodeXri = contextNode.getContextNode().getXri();
+			XDI3Segment parentContextNodeXri = contextNode.getContextNode().getXri();
 			ContextNode targetParentContextNode = targetGraph.findContextNode(parentContextNodeXri, true);
 			targetContextNode = targetParentContextNode.createContextNode(contextNode.getArcXri());
 		}
@@ -105,7 +113,7 @@ public final class CopyUtil {
 		if (targetGraph == null) throw new NullPointerException();
 		if (copyStrategy == null) copyStrategy = allCopyStrategy;
 
-		XRI3Segment contextNodeXri = relation.getContextNode().getXri();
+		XDI3Segment contextNodeXri = relation.getContextNode().getXri();
 		ContextNode targetContextNode = targetGraph.findContextNode(contextNodeXri, true);
 
 		return copyRelation(relation, targetContextNode, copyStrategy);
@@ -145,7 +153,7 @@ public final class CopyUtil {
 		if (targetGraph == null) throw new NullPointerException();
 		if (copyStrategy == null) copyStrategy = allCopyStrategy;
 
-		XRI3Segment contextNodeXri = literal.getContextNode().getXri();
+		XDI3Segment contextNodeXri = literal.getContextNode().getXri();
 		ContextNode targetContextNode = targetGraph.findContextNode(contextNodeXri, true);
 
 		return copyLiteral(literal, targetContextNode, copyStrategy);
@@ -256,6 +264,26 @@ public final class CopyUtil {
 	}
 
 	/**
+	 * Copies a literal of a context node into a target context node.
+	 * @param contextNode A context node from any graph.
+	 * @param targetContextNode The target context node.
+	 * @param copyStrategy The strategy to determine what to copy.
+	 * @return The copied literal in the target graph.
+	 */
+	public static Statement copyStatement(Statement statement, Graph targetGraph, CopyStrategy copyStrategy) {
+
+		if (statement == null) throw new NullPointerException();
+		if (targetGraph == null) throw new NullPointerException();
+		if (copyStrategy == null) copyStrategy = allCopyStrategy;
+
+		if (statement instanceof ContextNodeStatement) return copyContextNode(((ContextNodeStatement) statement).getContextNode(), targetGraph, null).getStatement();
+		if (statement instanceof RelationStatement) return copyRelation(((RelationStatement) statement).getRelation(), targetGraph, null).getStatement();
+		if (statement instanceof LiteralStatement) return copyLiteral(((LiteralStatement) statement).getLiteral(), targetGraph, null).getStatement();
+
+		return null;
+	}
+
+	/**
 	 * An interface that can determine what to copy and what not.
 	 */
 	public static abstract class CopyStrategy {
@@ -302,5 +330,60 @@ public final class CopyUtil {
 	 */
 	public static class AllCopyStrategy extends CopyStrategy {
 
+	}
+
+	/**
+	 * A strategy that excludes certain context nodes.
+	 */
+	public static class ExcludeContextNodesCopyStrategy extends CopyStrategy {
+
+		private Set<ContextNode> excludeContextNodes;
+
+		public ExcludeContextNodesCopyStrategy(Collection<ContextNode> excludeContextNodes) {
+
+			this.excludeContextNodes = new HashSet<ContextNode> ();
+			this.excludeContextNodes.addAll(excludeContextNodes);
+		}
+
+		public ExcludeContextNodesCopyStrategy() {
+
+			this(Arrays.asList(new ContextNode[0]));
+		}
+
+		@Override
+		public ContextNode replaceContextNode(ContextNode contextNode) {
+
+			if (this.excludeContextNodes.contains(contextNode)) return null;
+
+			return contextNode;
+		}
+
+		public void addExcludeContextNode(ContextNode contextNode) {
+
+			this.excludeContextNodes.add(contextNode);
+		}
+	}
+
+	/**
+	 * A strategy that excludes duplicate context nodes.
+	 */
+	public static class ExcludeDuplicateContextNodesCopyStrategy extends ExcludeContextNodesCopyStrategy {
+
+		public ExcludeDuplicateContextNodesCopyStrategy() {
+
+			super();
+		}
+
+		@Override
+		public ContextNode replaceContextNode(ContextNode contextNode) {
+
+			try {
+
+				return super.replaceContextNode(contextNode);
+			} finally {
+
+				this.addExcludeContextNode(contextNode);
+			}
+		}
 	}
 }

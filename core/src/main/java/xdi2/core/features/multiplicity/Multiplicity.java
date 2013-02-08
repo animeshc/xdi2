@@ -1,9 +1,14 @@
 package xdi2.core.features.multiplicity;
 
-import xdi2.core.util.XRIUtil;
-import xdi2.core.xri3.impl.XRI3Constants;
-import xdi2.core.xri3.impl.XRI3SubSegment;
-import xdi2.core.xri3.impl.parser.ParserException;
+import java.util.Iterator;
+import java.util.UUID;
+
+import xdi2.core.ContextNode;
+import xdi2.core.util.iterators.MappingIterator;
+import xdi2.core.util.iterators.NotNullIterator;
+import xdi2.core.xri3.XDI3SubSegment;
+import xdi2.core.xri3.XRI3Constants;
+import xdi2.core.xri3.parser.aparse.ParserException;
 
 /**
  * Multiplicity supports constructs to express XDI collections, entities and attributes.
@@ -27,48 +32,53 @@ public class Multiplicity {
 	 * Methods for building arc XRIs.
 	 */
 
-	public static XRI3SubSegment collectionArcXri(XRI3SubSegment arcXri) {
+	public static XDI3SubSegment collectionArcXri(XDI3SubSegment arcXri) {
 
-		return new XRI3SubSegment("" + XRI3Constants.GCS_DOLLAR + "(" + arcXri + ")");
+		return XDI3SubSegment.create("" + XRI3Constants.GCS_DOLLAR + "(" + arcXri + ")");
 	}
 
-	public static XRI3SubSegment entitySingletonArcXri(XRI3SubSegment arcXri) {
+	public static XDI3SubSegment collectionArcXri(String identifier) {
+
+		return XDI3SubSegment.create("" + XRI3Constants.GCS_DOLLAR + "(" + identifier + ")");
+	}
+
+	public static XDI3SubSegment entitySingletonArcXri(XDI3SubSegment arcXri) {
 
 		return arcXri;
 	}
 
-	public static XRI3SubSegment entityMemberArcXri(XRI3SubSegment arcXri) {
+	public static XDI3SubSegment entityMemberArcXri(String identifier) {
 
-		return new XRI3SubSegment("" + XRI3Constants.GCS_DOLLAR + "(" + arcXri + ")");
+		return XDI3SubSegment.create("" + XRI3Constants.GCS_DOLLAR + "(" + XRI3Constants.LCS_BANG + identifier + ")");
 	}
 
-	public static XRI3SubSegment entityMemberArcXriRandom() {
+	public static XDI3SubSegment entityMemberArcXriRandom() {
 
-		return XRIUtil.randomXRefSubSegment("" + XRI3Constants.GCS_DOLLAR, "" + XRI3Constants.LCS_BANG);
+		return entityMemberArcXri(UUID.randomUUID().toString());
 	}
 
-	public static XRI3SubSegment attributeSingletonArcXri(XRI3SubSegment arcXri) {
+	public static XDI3SubSegment attributeSingletonArcXri(XDI3SubSegment arcXri) {
 
-		return new XRI3SubSegment("" + XRI3Constants.GCS_DOLLAR + XRI3Constants.LCS_BANG + "(" + arcXri + ")");
+		return XDI3SubSegment.create("" + XRI3Constants.GCS_DOLLAR + XRI3Constants.LCS_BANG + "(" + arcXri + ")");
 	}
 
-	public static XRI3SubSegment attributeMemberArcXri(XRI3SubSegment arcXri) {
+	public static XDI3SubSegment attributeMemberArcXri(String identifier) {
 
-		return new XRI3SubSegment("" + XRI3Constants.GCS_DOLLAR + XRI3Constants.LCS_BANG + "(" + arcXri + ")");
+		return XDI3SubSegment.create("" + XRI3Constants.GCS_DOLLAR + XRI3Constants.LCS_BANG + "(" + XRI3Constants.LCS_BANG + identifier + ")");
 	}
 
-	public static XRI3SubSegment attributeMemberArcXriRandom() {
+	public static XDI3SubSegment attributeMemberArcXriRandom() {
 
-		return XRIUtil.randomXRefSubSegment("" + XRI3Constants.GCS_DOLLAR + XRI3Constants.LCS_BANG, "" + XRI3Constants.LCS_BANG);
+		return attributeMemberArcXri(UUID.randomUUID().toString());
 	}
 
-	public static XRI3SubSegment baseArcXri(XRI3SubSegment arcXri) {
+	public static XDI3SubSegment baseArcXri(XDI3SubSegment arcXri) {
 
 		try {
 
 			if (isCollectionArcXri(arcXri)) {
 
-				return new XRI3SubSegment("" + arcXri.getXRef().getXRIReference().toString());
+				return XDI3SubSegment.create("" + arcXri.getXRef().getSegment().toString());
 			}
 
 			if (isEntitySingletonArcXri(arcXri)) {
@@ -78,17 +88,17 @@ public class Multiplicity {
 
 			if (isAttributeSingletonArcXri(arcXri)) {
 
-				return new XRI3SubSegment("" + arcXri.getXRef().getXRIReference().toString());
+				return XDI3SubSegment.create("" + arcXri.getXRef().getSegment().toString());
 			}
 
 			if (isEntityMemberArcXri(arcXri)) {
 
-				return new XRI3SubSegment("" + arcXri.getXRef().getXRIReference().toString());
+				return XDI3SubSegment.create("" + arcXri.getXRef().getSegment().toString());
 			}
 
 			if (isAttributeMemberArcXri(arcXri)) {
 
-				return new XRI3SubSegment("" + arcXri.getXRef().getXRIReference().toString());
+				return XDI3SubSegment.create("" + arcXri.getXRef().getSegment().toString());
 			}
 		} catch (ParserException ex) {
 
@@ -102,18 +112,18 @@ public class Multiplicity {
 	 * Methods for checking arc XRIs.
 	 */
 
-	public static boolean isCollectionArcXri(XRI3SubSegment arcXri) {
+	public static boolean isCollectionArcXri(XDI3SubSegment arcXri) {
 
 		if (arcXri == null) return false;
 		if (! XRI3Constants.GCS_DOLLAR.equals(arcXri.getGCS())) return false;
 		if (arcXri.hasLCS()) return false;
 		if (! arcXri.hasXRef()) return false;
-		if (! arcXri.getXRef().hasXRIReference()) return false;
+		if (! arcXri.getXRef().hasSegment()) return false;
 
 		return true;
 	}
 
-	public static boolean isEntitySingletonArcXri(XRI3SubSegment arcXri) {
+	public static boolean isEntitySingletonArcXri(XDI3SubSegment arcXri) {
 
 		if (isCollectionArcXri(arcXri)) return false;
 		if (isAttributeSingletonArcXri(arcXri)) return false;
@@ -123,46 +133,121 @@ public class Multiplicity {
 		return true;
 	}
 
-	public static boolean isAttributeSingletonArcXri(XRI3SubSegment arcXri) {
+	public static boolean isAttributeSingletonArcXri(XDI3SubSegment arcXri) {
 
 		if (arcXri == null) return false;
 		if (! XRI3Constants.GCS_DOLLAR.equals(arcXri.getGCS())) return false;
 		if (! XRI3Constants.LCS_BANG.equals(arcXri.getLCS())) return false;
 		if (! arcXri.hasXRef()) return false;
-		if (! arcXri.getXRef().hasXRIReference()) return false;
+		if (! arcXri.getXRef().hasSegment()) return false;
 
 		return true;
 	}
 
-	public static boolean isEntityMemberArcXri(XRI3SubSegment arcXri) {
+	public static boolean isEntityMemberArcXri(XDI3SubSegment arcXri) {
 
 		if (arcXri == null) return false;
 		if (! XRI3Constants.GCS_DOLLAR.equals(arcXri.getGCS())) return false;
 		if (arcXri.hasLCS()) return false;
 		if (! arcXri.hasXRef()) return false;
-		if (! arcXri.getXRef().hasXRIReference()) return false;
-		if (! arcXri.getXRef().getXRIReference().hasPath()) return false;
-		if (arcXri.getXRef().getXRIReference().getPath().getNumSegments() <= 0) return false;
-		if (arcXri.getXRef().getXRIReference().getPath().getFirstSegment().getNumSubSegments() <= 0) return false;
-		if (arcXri.getXRef().getXRIReference().getPath().getFirstSegment().getFirstSubSegment().hasGCS()) return false;
-		if (! XRI3Constants.LCS_BANG.equals(arcXri.getXRef().getXRIReference().getPath().getFirstSegment().getFirstSubSegment().getLCS())) return false;
+		if (! arcXri.getXRef().hasSegment()) return false;
+		if (arcXri.getXRef().getSegment().getNumSubSegments() <= 0) return false;
+		if (arcXri.getXRef().getSegment().getFirstSubSegment().hasGCS()) return false;
+		if (! XRI3Constants.LCS_BANG.equals(arcXri.getXRef().getSegment().getFirstSubSegment().getLCS())) return false;
 
 		return true;
 	}
 
-	public static boolean isAttributeMemberArcXri(XRI3SubSegment arcXri) {
+	public static boolean isAttributeMemberArcXri(XDI3SubSegment arcXri) {
 
 		if (arcXri == null) return false;
 		if (! XRI3Constants.GCS_DOLLAR.equals(arcXri.getGCS())) return false;
 		if (! XRI3Constants.LCS_BANG.equals(arcXri.getLCS())) return false;
 		if (! arcXri.hasXRef()) return false;
-		if (! arcXri.getXRef().hasXRIReference()) return false;
-		if (! arcXri.getXRef().getXRIReference().hasPath()) return false;
-		if (arcXri.getXRef().getXRIReference().getPath().getNumSegments() <= 0) return false;
-		if (arcXri.getXRef().getXRIReference().getPath().getFirstSegment().getNumSubSegments() <= 0) return false;
-		if (arcXri.getXRef().getXRIReference().getPath().getFirstSegment().getFirstSubSegment().hasGCS()) return false;
-		if (! XRI3Constants.LCS_BANG.equals(arcXri.getXRef().getXRIReference().getPath().getFirstSegment().getFirstSubSegment().getLCS())) return false;
+		if (! arcXri.getXRef().hasSegment()) return false;
+		if (arcXri.getXRef().getSegment().getNumSubSegments() <= 0) return false;
+		if (arcXri.getXRef().getSegment().getFirstSubSegment().hasGCS()) return false;
+		if (! XRI3Constants.LCS_BANG.equals(arcXri.getXRef().getSegment().getFirstSubSegment().getLCS())) return false;
 
 		return true;
+	}
+
+	/*
+	 * Helper classes
+	 */
+
+	public static class MappingContextNodeCollectionIterator extends NotNullIterator<XdiCollection> {
+
+		public MappingContextNodeCollectionIterator(Iterator<ContextNode> contextNodes) {
+
+			super(new MappingIterator<ContextNode, XdiCollection> (contextNodes) {
+
+				@Override
+				public XdiCollection map(ContextNode contextNode) {
+
+					return XdiCollection.fromContextNode(contextNode);
+				}
+			});
+		}
+	}
+
+	public static class MappingContextNodeEntitySingletonIterator extends NotNullIterator<XdiEntitySingleton> {
+
+		public MappingContextNodeEntitySingletonIterator(Iterator<ContextNode> contextNodes) {
+
+			super(new MappingIterator<ContextNode, XdiEntitySingleton> (contextNodes) {
+
+				@Override
+				public XdiEntitySingleton map(ContextNode contextNode) {
+
+					return XdiEntitySingleton.fromContextNode(contextNode);
+				}
+			});
+		}
+	}
+
+	public static class MappingContextNodeAttributeSingletonIterator extends NotNullIterator<XdiAttributeSingleton> {
+
+		public MappingContextNodeAttributeSingletonIterator(Iterator<ContextNode> contextNodes) {
+
+			super(new MappingIterator<ContextNode, XdiAttributeSingleton> (contextNodes) {
+
+				@Override
+				public XdiAttributeSingleton map(ContextNode contextNode) {
+
+					return XdiAttributeSingleton.fromContextNode(contextNode);
+				}
+			});
+		}
+	}
+
+	public static class MappingContextNodeEntityMemberIterator extends NotNullIterator<XdiEntityMember> {
+
+		public MappingContextNodeEntityMemberIterator(Iterator<ContextNode> contextNodes) {
+
+			super(new MappingIterator<ContextNode, XdiEntityMember> (contextNodes) {
+
+				@Override
+				public XdiEntityMember map(ContextNode contextNode) {
+
+					return XdiEntityMember.fromContextNode(contextNode);
+				}
+			});
+		}
+	}
+
+	public static class MappingContextNodeAttributeMemberIterator extends NotNullIterator<XdiAttributeMember> {
+
+		public MappingContextNodeAttributeMemberIterator(Iterator<ContextNode> contextNodes) {
+
+			super(new MappingIterator<ContextNode, XdiAttributeMember> (contextNodes) {
+
+				@Override
+				public XdiAttributeMember map(ContextNode contextNode) {
+
+					return XdiAttributeMember.fromContextNode(contextNode);
+				}
+			});
+		}
 	}
 }

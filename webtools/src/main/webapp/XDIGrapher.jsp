@@ -20,7 +20,7 @@
 
 	<% if (request.getAttribute("error") != null) { %>
 			
-		<p><font color="red"><%= request.getAttribute("error") != null ? request.getAttribute("error") : "" %></font></p>
+		<p style="font-family: monospace; white-space: pre; color: red;"><%= request.getAttribute("error") != null ? request.getAttribute("error") : "" %></p>
 
 	<% } %>
 
@@ -31,8 +31,9 @@
 		<% String type = (String) request.getAttribute("type"); if (type == null) type = ""; %>
 
 		<select name="type">
-		<option value="stdl" <%= type.equals("stdl") ? "selected" : "" %>>XDI Standard Graph (with legend)</option>
-		<option value="std" <%= type.equals("std") ? "selected" : "" %>>XDI Standard Graph (without legend)</option>
+		<option value="d1" <%= type.equals("d1") ? "selected" : "" %>>KKLayout</option>
+		<option value="d2" <%= type.equals("d2") ? "selected" : "" %>>FRLayout2</option>
+		<option value="d3" <%= type.equals("d3") ? "selected" : "" %>>ISOMLayout</option>
 		</select>
 		<input type="submit" value="Draw!">
 		&nbsp;&nbsp;&nbsp;&nbsp;<a href="XDIGrapherHelp.jsp">What can I do here?</a>

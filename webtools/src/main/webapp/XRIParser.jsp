@@ -5,6 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>XRI Parser</title>
+<script type="text/javascript" src="tabber.js"></script>
 <link rel="stylesheet" target="_blank" href="style.css" TYPE="text/css" MEDIA="screen">
 </head>
 <body style="background-image: url('images/back.png'); background-repeat: repeat-y; margin-left: 60px;">
@@ -13,28 +14,98 @@
 	<img src="images/logo64.png" align="middle">&nbsp;&nbsp;&nbsp;<span id="appname">XRI Parser</span>
 	&nbsp;&nbsp;&nbsp;&nbsp;
 	<a href="index.jsp">&gt;&gt;&gt; Other Apps...</a>
+	&nbsp;&nbsp;&nbsp;&nbsp;
+	View the source ABNF <a href="https://github.com/peacekeeper/xdi2/blob/master/core/src/main/resources/">here</a>...
 	</div>
 
 	<% if (request.getAttribute("error") != null) { %>
 			
-		<p><font color="red"><%= request.getAttribute("error") != null ? request.getAttribute("error") : "" %></font></p>
+		<p style="font-family: monospace; white-space: pre; color: red;"><%= request.getAttribute("error") != null ? request.getAttribute("error") : "" %></p>
 
 	<% } %>
 
 	<form action="XRIParser" method="post">
 
-		ABNF Rule: (e.g. xri, xri-reference, xri-segment, subseg, xref, ...): <input type="text" class="input" name="rulename" style="width: 200px" value="<%= request.getAttribute("rulename") != null ? request.getAttribute("rulename") : "" %>"><br>
-		String: <input type="text" class="input" name="input" style="width: 500px" value="<%= request.getAttribute("input") != null ? request.getAttribute("input") : "" %>">
-
+		Parse ABNF:
+		<select name="rulename" style="width: 200px">
+		
+		<% for (String rule : (String[]) request.getAttribute("rules")) { %>
+			<option class="input" name="rulename" value="<%= rule %>" <%= rule.equals(request.getAttribute("rulename")) ? "selected" : "" %>><%= rule %></option>
+		<% } %>
+		</select>
+		&nbsp;
+		<input type="text" class="input" name="input" style="width: 500px" value="<%= request.getAttribute("input") != null ? request.getAttribute("input") : "" %>">
+		&nbsp;
+		<input type="radio" name="parser" value="aparse" <%= "aparse".equals(request.getAttribute("parser")) ? "checked" : "" %>>aParse
+		&nbsp;
+		<input type="radio" name="parser" value="apg" <%= "apg".equals(request.getAttribute("parser")) ? "checked" : "" %>>APG
+		&nbsp;
 		<input type="submit" value="Go!">
 
 	</form>
 
 	<br>
 
-	<% if (request.getAttribute("output") != null) { %>
-		<div class="result"><pre><%= request.getAttribute("output") != null ? request.getAttribute("output") : "" %></pre></div><br>
+	<div class="tabber">
+
+	<% if ("aparse".equals(request.getAttribute("parser"))) { %>
+
+	<% if (request.getAttribute("output1") != null) { %>
+	    <div class="tabbertab">
+		<h2>aParse Tree</h2>
+		<div class="result"><pre><%= request.getAttribute("output1") != null ? request.getAttribute("output1") : "" %></pre></div><br>
+		</div>
 	<% } %>
+
+	<% if (request.getAttribute("output2") != null) { %>
+	    <div class="tabbertab">
+		<h2>aParse Stack</h2>
+		<div class="result"><pre><%= request.getAttribute("output2") != null ? request.getAttribute("output2") : "" %></pre></div><br>
+		</div>
+	<% } %>
+
+	<% if (request.getAttribute("output3") != null) { %>
+	    <div class="tabbertab">
+		<h2>aParse Xml</h2>
+		<div class="result"><pre><%= request.getAttribute("output3") != null ? request.getAttribute("output3") : "" %></pre></div><br>
+		</div>
+	<% } %>
+
+	<% if (request.getAttribute("output4") != null) { %>
+	    <div class="tabbertab">
+		<h2>aParse Counts</h2>
+		<div class="result"><pre><%= request.getAttribute("output4") != null ? request.getAttribute("output4") : "" %></pre></div><br>
+		</div>
+	<% } %>
+	
+	<% } %>
+
+	<% if ("apg".equals(request.getAttribute("parser"))) { %>
+
+	<% if (request.getAttribute("output5") != null) { %>
+	    <div class="tabbertab">
+		<h2>APG Result</h2>
+		<div class="result"><pre><%= request.getAttribute("output5") != null ? request.getAttribute("output5") : "" %></pre></div><br>
+		</div>
+	<% } %>
+	
+	<% if (request.getAttribute("output6") != null) { %>
+	    <div class="tabbertab">
+		<h2>APG Statistics</h2>
+		<div class="result"><pre><%= request.getAttribute("output6") != null ? request.getAttribute("output6") : "" %></pre></div><br>
+		</div>
+	<% } %>
+	
+	<% if (request.getAttribute("output7") != null) { %>
+	    <div class="tabbertab">
+		<h2>APG Trace</h2>
+		<div class="result"><pre><%= request.getAttribute("output7") != null ? request.getAttribute("output7") : "" %></pre></div><br>
+		</div>
+	<% } %>
+	
+	<% } %>
+
+	</div>
 	
 </body>
 </html>
