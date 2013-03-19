@@ -13,7 +13,12 @@ import xdi2.core.GraphFactory;
 import xdi2.core.Literal;
 import xdi2.core.Relation;
 import xdi2.core.Statement;
+import xdi2.core.constants.XDIConstants;
+import xdi2.core.exceptions.Xdi2GraphException;
 import xdi2.core.exceptions.Xdi2RuntimeException;
+import xdi2.core.features.roots.InnerRoot;
+import xdi2.core.features.roots.Root;
+import xdi2.core.features.roots.Roots;
 import xdi2.core.io.MimeType;
 import xdi2.core.io.XDIWriter;
 import xdi2.core.io.XDIWriterRegistry;
@@ -25,7 +30,7 @@ public abstract class AbstractGraph implements Graph {
 
 	private static final long serialVersionUID = -5285276230236236923L;
 
-	private static final Logger log = LoggerFactory.getLogger(AbstractGraph.class);
+	private static final Logger log = LoggerFactory.getLogger(AbstractContextNode.class);
 
 	private GraphFactory graphFactory;
 
@@ -58,6 +63,8 @@ public abstract class AbstractGraph implements Graph {
 
 	@Override
 	public ContextNode findContextNode(XDI3Segment contextNodeXri, boolean create) {
+
+		if (XDIConstants.XRI_S_ROOT.equals(contextNodeXri)) return this.getRootContextNode();
 
 		return this.getRootContextNode().findContextNode(contextNodeXri, create);
 	}
@@ -169,29 +176,47 @@ public abstract class AbstractGraph implements Graph {
 	@Override
 	public Statement createStatement(XDI3Statement statementXri) {
 
-		ContextNode contextNode = this.findContextNode(statementXri.getSubject(), true);
+		// find the root and the base context node of this statement
+
+		Root root = Roots.findLocalRoot(this).findRoot(statementXri.getSubject(), true);
+		XDI3Segment relativePart = root.getRelativePart(statementXri.getSubject());
+		ContextNode baseContextNode = relativePart == null ? root.getContextNode() : root.getContextNode().findContextNode(relativePart, true);
+
+		// inner root short notation?
+
+		if (statementXri.hasInnerRootStatement()) {
+
+			XDI3Segment subject = relativePart;
+			XDI3Segment predicate = statementXri.getPredicate();
+
+			InnerRoot innerRoot = root.findInnerRoot(subject, predicate, true);
+
+			return innerRoot.createRelativeStatement(statementXri.getInnerRootStatement());
+		}
+
+		// add the statement
 
 		if (statementXri.isContextNodeStatement()) {
 
-			ContextNode innerContextNode = contextNode.createContextNodes(statementXri.getObject());
-			if (log.isTraceEnabled()) log.trace("Under " + contextNode.getXri() + ": Created context node --> " + innerContextNode.getXri());
+			ContextNode contextNode = baseContextNode.createContextNodes(statementXri.getObject());
+			if (log.isTraceEnabled()) log.trace("Under " + baseContextNode.getXri() + ": Created context node --> " + contextNode.getXri());
 
-			return innerContextNode.getStatement();
+			return contextNode.getStatement();
 		} else if (statementXri.isRelationStatement()) {
 
-			Relation relation = contextNode.createRelation(statementXri.getArcXri(), statementXri.getTargetContextNodeXri());
-			if (log.isTraceEnabled()) log.trace("Under " + contextNode.getXri() + ": Created relation " + relation.getArcXri() + " --> " + relation.getTargetContextNodeXri());
+			Relation relation = baseContextNode.createRelation(statementXri.getArcXri(), statementXri.getTargetContextNodeXri());
+			if (log.isTraceEnabled()) log.trace("Under " + baseContextNode.getXri() + ": Created relation " + relation.getArcXri() + " --> " + relation.getTargetContextNodeXri());
 
 			return relation.getStatement();
 		} else if (statementXri.isLiteralStatement()) {
 
-			Literal literal = contextNode.createLiteral(statementXri.getLiteralData());
-			if (log.isTraceEnabled()) log.trace("Under " + contextNode.getXri() + ": Created literal --> " + literal.getLiteralData());
+			Literal literal = baseContextNode.createLiteral(statementXri.getLiteralData());
+			if (log.isTraceEnabled()) log.trace("Under " + baseContextNode.getXri() + ": Created literal --> " + literal.getLiteralData());
 
 			return literal.getStatement();
 		} else {
 
-			throw new Xdi2RuntimeException("Invalid statement XRI: " + statementXri);
+			throw new Xdi2GraphException("Invalid statement XRI: " + statementXri);
 		}
 	}
 

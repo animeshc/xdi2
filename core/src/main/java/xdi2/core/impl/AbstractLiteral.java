@@ -115,7 +115,7 @@ public abstract class AbstractLiteral implements Literal {
 		@Override
 		public XDI3Segment getObject() {
 
-			return XDIUtil.stringToDataXriSegment(AbstractLiteral.this.getLiteralData(), false);
+			return XDIUtil.stringToLiteralSegment(AbstractLiteral.this.getLiteralData(), false);
 		}
 
 		@Override

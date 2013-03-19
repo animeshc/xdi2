@@ -127,13 +127,13 @@ public abstract class AbstractContextNode implements ContextNode {
 	 */
 
 	@Override
-	public ContextNode createContextNodes(XDI3Segment arcXri) {
+	public ContextNode createContextNodes(XDI3Segment arcXris) {
 
 		ContextNode contextNode = this;
 
-		for (int i = 0; i < arcXri.getNumSubSegments(); i++) {
+		for (int i = 0; i < arcXris.getNumSubSegments(); i++) {
 
-			contextNode = contextNode.createContextNode(arcXri.getSubSegment(i));
+			contextNode = contextNode.createContextNode(arcXris.getSubSegment(i));
 		}
 
 		return contextNode;
@@ -166,7 +166,7 @@ public abstract class AbstractContextNode implements ContextNode {
 			}
 		};
 
-		List<Iterator<ContextNode>> list = new ArrayList<Iterator<ContextNode>> ();
+		List<Iterator<? extends ContextNode>> list = new ArrayList<Iterator<? extends ContextNode>> ();
 		list.add(this.getContextNodes());
 		list.add(descendingIterator);
 
@@ -325,7 +325,7 @@ public abstract class AbstractContextNode implements ContextNode {
 			}
 		};
 
-		List<Iterator<Relation>> list = new ArrayList<Iterator<Relation>> ();
+		List<Iterator<? extends Relation>> list = new ArrayList<Iterator<? extends Relation>> ();
 		list.add(this.getRelations());
 		list.add(descendingIterator);
 
@@ -424,7 +424,7 @@ public abstract class AbstractContextNode implements ContextNode {
 
 		Literal literal = this.getLiteral();
 
-		List<Iterator<Literal>> list = new ArrayList<Iterator<Literal>> ();
+		List<Iterator<? extends Literal>> list = new ArrayList<Iterator<? extends Literal>> ();
 		if (literal != null) list.add(new SingleItemIterator<Literal> (literal));
 		list.add(descendingIterator);
 
@@ -486,15 +486,9 @@ public abstract class AbstractContextNode implements ContextNode {
 	@Override
 	public ReadOnlyIterator<Statement> getAllStatements() {
 
-		Iterator<Statement> contextNodeStatement = null;
 		Iterator<Statement> contextNodesStatements = null;
 		Iterator<Statement> relationsStatements = null;
 		Iterator<Statement> literalStatement = null;
-
-		if (! this.isRootContextNode()) {
-
-			contextNodeStatement = new SingleItemIterator<Statement> (this.getStatement());
-		}
 
 		if (this.containsContextNodes()) {
 
@@ -503,7 +497,11 @@ public abstract class AbstractContextNode implements ContextNode {
 				@Override
 				public Iterator<Statement> descend(ContextNode contextNode) {
 
-					return contextNode.getAllStatements();
+					List<Iterator<? extends Statement>> list = new ArrayList<Iterator<? extends Statement>> ();
+					list.add(new SingleItemIterator<Statement> (contextNode.getStatement()));
+					list.add(contextNode.getAllStatements());
+
+					return new CompositeIterator<Statement> (list.iterator());
 				}
 			};
 		}
@@ -525,8 +523,7 @@ public abstract class AbstractContextNode implements ContextNode {
 			literalStatement = new SingleItemIterator<Statement> (this.getLiteral().getStatement());
 		}
 
-		List<Iterator<Statement>> list = new ArrayList<Iterator<Statement>> ();
-		if (contextNodeStatement != null) list.add(contextNodeStatement);
+		List<Iterator<? extends Statement>> list = new ArrayList<Iterator<? extends Statement>> ();
 		if (contextNodesStatements != null) list.add(contextNodesStatements);
 		if (relationsStatements != null) list.add(relationsStatements);
 		if (literalStatement != null) list.add(literalStatement);

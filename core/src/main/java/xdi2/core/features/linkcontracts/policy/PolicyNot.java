@@ -2,9 +2,9 @@ package xdi2.core.features.linkcontracts.policy;
 
 import java.util.Iterator;
 
-import xdi2.core.constants.XDILinkContractConstants;
+import xdi2.core.constants.XDIPolicyConstants;
 import xdi2.core.features.linkcontracts.evaluation.PolicyEvaluationContext;
-import xdi2.core.features.linkcontracts.policystatement.PolicyStatement;
+import xdi2.core.features.linkcontracts.operator.Operator;
 import xdi2.core.features.multiplicity.XdiEntityMember;
 import xdi2.core.features.multiplicity.XdiEntitySingleton;
 import xdi2.core.features.multiplicity.XdiSubGraph;
@@ -35,9 +35,9 @@ public class PolicyNot extends Policy {
 	public static boolean isValid(XdiSubGraph xdiSubGraph) {
 
 		if (xdiSubGraph instanceof XdiEntitySingleton)
-			return ((XdiEntitySingleton) xdiSubGraph).getBaseArcXri().equals(XDILinkContractConstants.XRI_SS_NOT);
+			return ((XdiEntitySingleton) xdiSubGraph).getBaseArcXri().equals(XDIPolicyConstants.XRI_SS_NOT);
 		else if (xdiSubGraph instanceof XdiEntityMember)
-			return ((XdiEntityMember) xdiSubGraph).getParentCollection().getBaseArcXri().equals(XDILinkContractConstants.XRI_SS_NOT);
+			return ((XdiEntityMember) xdiSubGraph).getParentCollection().getBaseArcXri().equals(XDIPolicyConstants.XRI_SS_NOT);
 
 		return false;
 	}
@@ -59,20 +59,20 @@ public class PolicyNot extends Policy {
 	 */
 
 	@Override
-	public boolean evaluateInternal(PolicyEvaluationContext policyEvaluationContext) {
+	public Boolean evaluateInternal(PolicyEvaluationContext policyEvaluationContext) {
 
 		for (Iterator<Policy> policies = this.getPolicies(); policies.hasNext(); ) {
 
 			Policy policy = policies.next();
-			if (false == policy.evaluate(policyEvaluationContext)) return true;
+			if (Boolean.FALSE.equals(policy.evaluate(policyEvaluationContext))) return Boolean.TRUE;
 		}
 
-		for (Iterator<PolicyStatement> policyStatements = this.getPolicyStatements(); policyStatements.hasNext(); ) {
+		for (Iterator<Operator> operators = this.getOperators(); operators.hasNext(); ) {
 
-			PolicyStatement policyStatement = policyStatements.next();
-			if (false == policyStatement.evaluate(policyEvaluationContext)) return true;
+			Operator operator = operators.next();
+			for (Boolean result : operator.evaluate(policyEvaluationContext)) if (Boolean.FALSE.equals(result)) return Boolean.TRUE;
 		}
 
-		return false;
+		return Boolean.FALSE;
 	}
 }

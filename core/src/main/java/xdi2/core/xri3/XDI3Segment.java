@@ -2,21 +2,17 @@ package xdi2.core.xri3;
 
 import java.util.List;
 
-import xdi2.core.xri3.parser.XDI3Parser;
-import xdi2.core.xri3.parser.XDI3ParserRegistry;
 
 public class XDI3Segment extends XDI3SyntaxComponent {
 
 	private static final long serialVersionUID = 2153450076797516335L;
 
-	private String literal;
 	private List<XDI3SubSegment> subSegments;
 
-	public XDI3Segment(String string, String literal, List<XDI3SubSegment> subSegments) {
+	XDI3Segment(String string, List<XDI3SubSegment> subSegments) {
 
 		super(string);
 
-		this.literal = literal;
 		this.subSegments = subSegments;
 	}
 
@@ -27,17 +23,7 @@ public class XDI3Segment extends XDI3SyntaxComponent {
 
 	public static XDI3Segment create(String string) {
 
-		return create(XDI3ParserRegistry.getInstance(), string);
-	}
-
-	public boolean hasLiteral() {
-
-		return this.literal != null;
-	}
-
-	public String getLiteral() {
-
-		return this.literal;
+		return create(XDI3ParserRegistry.getInstance().getParser(), string);
 	}
 
 	public List<XDI3SubSegment> getSubSegments() {

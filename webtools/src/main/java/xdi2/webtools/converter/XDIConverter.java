@@ -84,8 +84,9 @@ public class XDIConverter extends javax.servlet.http.HttpServlet implements java
 		if (sample == null) sample = "1";
 
 		request.setAttribute("resultFormat", XDIDisplayWriter.FORMAT_NAME);
-		request.setAttribute("writeContexts", null);
+		request.setAttribute("writeImplied", null);
 		request.setAttribute("writeOrdered", "on");
+		request.setAttribute("writeInner", "on");
 		request.setAttribute("writePretty", null);
 		request.setAttribute("sampleInputs", Integer.valueOf(sampleInputs.size()));
 		request.setAttribute("input", sampleInputs.get(Integer.parseInt(sample) - 1));
@@ -96,8 +97,9 @@ public class XDIConverter extends javax.servlet.http.HttpServlet implements java
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		String resultFormat = request.getParameter("resultFormat");
-		String writeContexts = request.getParameter("writeContexts");
+		String writeImplied = request.getParameter("writeImplied");
 		String writeOrdered = request.getParameter("writeOrdered");
+		String writeInner = request.getParameter("writeInner");
 		String writePretty = request.getParameter("writePretty");
 		String from = request.getParameter("from");
 		String input = request.getParameter("input");
@@ -107,8 +109,9 @@ public class XDIConverter extends javax.servlet.http.HttpServlet implements java
 
 		Properties xdiWriterParameters = new Properties();
 
-		if ("on".equals(writeContexts)) xdiWriterParameters.setProperty(XDIWriterRegistry.PARAMETER_CONTEXTS, "1");
+		if ("on".equals(writeImplied)) xdiWriterParameters.setProperty(XDIWriterRegistry.PARAMETER_IMPLIED, "1");
 		if ("on".equals(writeOrdered)) xdiWriterParameters.setProperty(XDIWriterRegistry.PARAMETER_ORDERED, "1");
+		if ("on".equals(writeInner)) xdiWriterParameters.setProperty(XDIWriterRegistry.PARAMETER_INNER, "1");
 		if ("on".equals(writePretty)) xdiWriterParameters.setProperty(XDIWriterRegistry.PARAMETER_PRETTY, "1");
 
 		XDIReader xdiReader = XDIReaderRegistry.forFormat(from, null);
@@ -144,8 +147,9 @@ public class XDIConverter extends javax.servlet.http.HttpServlet implements java
 
 		request.setAttribute("sampleInputs", Integer.valueOf(sampleInputs.size()));
 		request.setAttribute("resultFormat", resultFormat);
-		request.setAttribute("writeContexts", writeContexts);
+		request.setAttribute("writeImplied", writeImplied);
 		request.setAttribute("writeOrdered", writeOrdered);
+		request.setAttribute("writeInner", writeInner);
 		request.setAttribute("writePretty", writePretty);
 		request.setAttribute("from", from);
 		request.setAttribute("input", input);

@@ -7,7 +7,9 @@ import xdi2.tests.core.features.dictionary.DictionaryTest;
 import xdi2.tests.core.features.equivalence.EquivalenceTest;
 import xdi2.tests.core.features.multiplicity.MultiplicityTest;
 import xdi2.tests.core.features.multiplicity.OrderingTest;
-import xdi2.tests.core.features.remoteroots.RemoteRootsTest;
+import xdi2.tests.core.features.roots.InnerRootsTest;
+import xdi2.tests.core.features.roots.LocalRootsTest;
+import xdi2.tests.core.features.roots.PeerRootsTest;
 import xdi2.tests.core.features.timestamps.TimestampsTest;
 import xdi2.tests.core.features.variables.VariablesTest;
 import xdi2.tests.core.graph.BDBGraphTest;
@@ -27,6 +29,7 @@ import xdi2.tests.core.util.XRIUtilTest;
 import xdi2.tests.core.util.iterators.IteratorTest;
 import xdi2.tests.core.xri3.XDI3ParserAPGTest;
 import xdi2.tests.core.xri3.XDI3ParserAParseTest;
+import xdi2.tests.core.xri3.XDI3ParserManualTest;
 
 public class AllTests {
 
@@ -35,6 +38,7 @@ public class AllTests {
 		//$JUnit-BEGIN$
 		suite.addTestSuite(XDI3ParserAParseTest.class);
 		suite.addTestSuite(XDI3ParserAPGTest.class);
+		suite.addTestSuite(XDI3ParserManualTest.class);
 		suite.addTestSuite(MemoryGraphTest.class);
 		suite.addTestSuite(MapGraphTest.class);
 		suite.addTestSuite(PropertiesGraphTest.class);
@@ -48,7 +52,9 @@ public class AllTests {
 		suite.addTestSuite(EquivalenceTest.class);
 		suite.addTestSuite(MultiplicityTest.class);
 		suite.addTestSuite(OrderingTest.class);
-		suite.addTestSuite(RemoteRootsTest.class);
+		suite.addTestSuite(LocalRootsTest.class);
+		suite.addTestSuite(PeerRootsTest.class);
+		suite.addTestSuite(InnerRootsTest.class);
 		suite.addTestSuite(TimestampsTest.class);
 		suite.addTestSuite(VariablesTest.class);
 		suite.addTestSuite(ReaderWriterRegistryTest.class);

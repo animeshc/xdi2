@@ -16,9 +16,10 @@ import xdi2.core.features.linkcontracts.LinkContract;
 import xdi2.core.features.linkcontracts.LinkContracts;
 import xdi2.core.features.linkcontracts.policy.PolicyAnd;
 import xdi2.core.features.linkcontracts.policy.PolicyUtil;
-import xdi2.core.features.remoteroots.RemoteRoots;
+import xdi2.core.features.roots.PeerRoot;
+import xdi2.core.features.roots.PeerRoot.MappingContextNodePeerRootIterator;
+import xdi2.core.features.roots.Roots;
 import xdi2.core.util.iterators.IteratorArrayMaker;
-import xdi2.core.util.iterators.MappingContextNodeXriIterator;
 import xdi2.core.xri3.XDI3Segment;
 import xdi2.messaging.constants.XDIMessagingConstants;
 import xdi2.messaging.target.MessagingTarget;
@@ -69,12 +70,13 @@ public class BootstrapInterceptor implements MessagingTargetInterceptor, Prototy
 
 		XDI3Segment[] ownerSynonyms = null;
 
-		if (prototypingContext.getOwnerRemoteRootContextNode() != null) {
+		if (prototypingContext.getOwnerPeerRoot() != null) {
 
-			Iterator<ContextNode> ownerSynonymRemoteRootContextNodes = Equivalence.getIncomingReferenceAndPrivateReferenceContextNodes(prototypingContext.getOwnerRemoteRootContextNode());
+			Iterator<ContextNode> ownerSynonymPeerRootContextNodes = Equivalence.getIncomingReferenceContextNodes(prototypingContext.getOwnerPeerRoot().getContextNode());
+			PeerRoot[] ownerSynonymPeerRoots = (new IteratorArrayMaker<PeerRoot> (new MappingContextNodePeerRootIterator(ownerSynonymPeerRootContextNodes))).array(PeerRoot.class);
 
-			ownerSynonyms = (new IteratorArrayMaker<XDI3Segment> (new MappingContextNodeXriIterator(ownerSynonymRemoteRootContextNodes))).array(XDI3Segment.class);
-			for (int i=0; i<ownerSynonyms.length; i++) ownerSynonyms[i] = RemoteRoots.xriOfRemoteRootXri(ownerSynonyms[i]);
+			ownerSynonyms = new XDI3Segment[ownerSynonymPeerRoots.length];
+			for (int i=0; i<ownerSynonyms.length; i++) ownerSynonyms[i] = ownerSynonymPeerRoots[i].getXriOfPeerRoot();
 		}
 
 		interceptor.setBootstrapOwnerSynonyms(ownerSynonyms);
@@ -113,17 +115,17 @@ public class BootstrapInterceptor implements MessagingTargetInterceptor, Prototy
 
 		// check if the owner statement exists
 
-		if (RemoteRoots.getSelfRemoteRootContextNode(graph) != null) return;
+		if (Roots.findLocalRoot(graph).getSelfPeerRoot() != null) return;
 
 		// create bootstrap owner
 
 		ContextNode bootstrapOwnerContextNode = null;
-		ContextNode bootstrapOwnerSelfRemoteRootContextNode = null;
+		ContextNode bootstrapOwnerSelfPeerRootContextNode = null;
 
 		if (this.bootstrapOwner != null) {
 
 			bootstrapOwnerContextNode = graph.findContextNode(this.bootstrapOwner, true);
-			bootstrapOwnerSelfRemoteRootContextNode = RemoteRoots.setSelfRemoteRootContextNode(graph, this.bootstrapOwner);
+			bootstrapOwnerSelfPeerRootContextNode = Roots.findLocalRoot(graph).setSelfPeerRoot(this.bootstrapOwner).getContextNode();
 		}
 
 		// create bootstrap owner synonyms
@@ -135,8 +137,8 @@ public class BootstrapInterceptor implements MessagingTargetInterceptor, Prototy
 				ContextNode bootstrapOwnerSynonymContextNode = graph.findContextNode(bootstrapOwnerSynonym, true);
 				bootstrapOwnerSynonymContextNode.createRelation(XDIDictionaryConstants.XRI_S_REF, bootstrapOwnerContextNode);
 
-				ContextNode bootstrapOwnerSynonymRemoteRootContextNode = RemoteRoots.findRemoteRootContextNode(graph, bootstrapOwnerSynonym, true);
-				bootstrapOwnerSynonymRemoteRootContextNode.createRelation(XDIDictionaryConstants.XRI_S_REF, bootstrapOwnerSelfRemoteRootContextNode);
+				ContextNode bootstrapOwnerSynonymPeerRootContextNode = Roots.findLocalRoot(graph).findPeerRoot(bootstrapOwnerSynonym, true).getContextNode();
+				bootstrapOwnerSynonymPeerRootContextNode.createRelation(XDIDictionaryConstants.XRI_S_REF, bootstrapOwnerSelfPeerRootContextNode);
 			}
 		}
 
@@ -158,8 +160,8 @@ public class BootstrapInterceptor implements MessagingTargetInterceptor, Prototy
 			bootstrapLinkContract.addPermission(XDILinkContractConstants.XRI_S_ALL, XDIConstants.XRI_S_ROOT);
 
 			PolicyAnd policyAnd = bootstrapLinkContract.getPolicyRoot(true).createAndPolicy();
-			policyAnd.addPolicyStatement(PolicyUtil.senderMatchesPolicyStatement(this.bootstrapOwner));
-			policyAnd.addPolicyStatement(PolicyUtil.secretTokenMatchesPolicyStatement());
+			policyAnd.addOperator(PolicyUtil.senderMatchesOperator(this.bootstrapOwner));
+			policyAnd.addOperator(PolicyUtil.secretTokenMatchesOperator());
 		}
 
 		// create public bootstrap link contract

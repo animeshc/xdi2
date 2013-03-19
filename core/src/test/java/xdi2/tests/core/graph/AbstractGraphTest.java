@@ -33,7 +33,6 @@ import xdi2.core.io.XDIReaderRegistry;
 import xdi2.core.io.XDIWriter;
 import xdi2.core.io.XDIWriterRegistry;
 import xdi2.core.util.CopyUtil;
-import xdi2.core.util.StatementUtil;
 import xdi2.core.util.iterators.IteratorContains;
 import xdi2.core.util.iterators.IteratorCounter;
 import xdi2.core.xri3.XDI3Segment;
@@ -57,9 +56,16 @@ public abstract class AbstractGraphTest extends TestCase {
 
 		markus = graph0.getRootContextNode().getContextNode(XDI3SubSegment.create("=markus"));
 		assertNotNull(markus);
+		assertFalse(markus.isEmpty());
+		assertTrue(markus.isLeafContextNode());
 		assertTrue(markus.containsRelations());
 		assertTrue(markus.containsLiteral());
 
+		ContextNode drummond = graph0.getRootContextNode().getContextNode(XDI3SubSegment.create("=drummond"));
+		assertNotNull(drummond);
+		assertTrue(drummond.isEmpty());
+		assertTrue(drummond.isLeafContextNode());
+		
 		graph0.close();
 	}
 
@@ -593,7 +599,7 @@ public abstract class AbstractGraphTest extends TestCase {
 		assertNull(markus.findLiteral(XDI3Segment.create("!not")));
 		assertEquals(markus.getAllLiteralCount(), 0);
 
-		assertEquals(markus.getAllStatementCount(), 1);
+		assertEquals(markus.getAllStatementCount(), 0);
 
 		graph19.close();
 	}
@@ -641,11 +647,11 @@ public abstract class AbstractGraphTest extends TestCase {
 		Literal name = webmarkus.createLiteral("Markus Sabadello");
 		ContextNode web = webmarkus.getContextNode();
 
-		assertTrue(StatementUtil.isImplied(webmarkus.getStatement()));
-		assertTrue(StatementUtil.isImplied(animesh.getStatement()));
-		assertFalse(StatementUtil.isImplied(friend.getStatement()));
-		assertFalse(StatementUtil.isImplied(name.getStatement()));
-		assertTrue(StatementUtil.isImplied(web.getStatement()));
+		assertTrue(webmarkus.getStatement().isImplied());
+		assertTrue(animesh.getStatement().isImplied());
+		assertFalse(friend.getStatement().isImplied());
+		assertFalse(name.getStatement().isImplied());
+		assertTrue(web.getStatement().isImplied());
 
 		graph21.close();
 	}

@@ -54,7 +54,7 @@ public class StatementUtilTest extends TestCase {
 				fail();
 			} catch (Exception ex) {
 
-				graph.close();
+				if (graph != null) graph.close();
 			}
 		} 
 	}
@@ -84,7 +84,7 @@ public class StatementUtilTest extends TestCase {
 		assertTrue(relationStatement.getObject().equals(XDI3Segment.create("=animesh")));
 
 		XDI3Statement literalStatement = XDI3Statement.create("=markus+name/!/(data:,Markus%20Sabadello)");
-		XDI3Statement literalStatement2 = StatementUtil.fromComponents(XDI3Segment.create("=markus+name"), XDIConstants.XRI_S_LITERAL, XDIUtil.stringToDataXriSegment("Markus Sabadello"));
+		XDI3Statement literalStatement2 = StatementUtil.fromComponents(XDI3Segment.create("=markus+name"), XDIConstants.XRI_S_LITERAL, XDIUtil.stringToLiteralSegment("Markus Sabadello"));
 		XDI3Statement literalStatement3 = StatementUtil.fromLiteralComponents(XDI3Segment.create("=markus+name"), "Markus Sabadello");
 
 		assertTrue(literalStatement.getSubject().equals(XDI3Segment.create("=markus+name")));
@@ -95,16 +95,16 @@ public class StatementUtilTest extends TestCase {
 		assertEquals(literalStatement, literalStatement3);
 	}
 
-	public void testRelative() throws Exception {
+	public void testreduce() throws Exception {
 
 		XDI3Statement literalStatement = XDI3Statement.create("=markus+name/!/(data:,Markus%20Sabadello)");
 
-		XDI3Statement relativeXDI3Statement = StatementUtil.relativeStatement(literalStatement, XDI3Segment.create("=markus"));
+		XDI3Statement reducedXDI3Statement = StatementUtil.reduceStatement(literalStatement, XDI3Segment.create("=markus"));
 
-		assertTrue(relativeXDI3Statement.getSubject().equals(XDI3Segment.create("+name")));
-		assertTrue(relativeXDI3Statement.getPredicate().equals(XDI3Segment.create("!")));
-		assertTrue(relativeXDI3Statement.getObject().equals(XDI3Segment.create("(data:,Markus%20Sabadello)")));
+		assertTrue(reducedXDI3Statement.getSubject().equals(XDI3Segment.create("+name")));
+		assertTrue(reducedXDI3Statement.getPredicate().equals(XDI3Segment.create("!")));
+		assertTrue(reducedXDI3Statement.getObject().equals(XDI3Segment.create("(data:,Markus%20Sabadello)")));
 
-		assertNull(StatementUtil.relativeStatement(relativeXDI3Statement, XDI3Segment.create("($)"), false, true));
+		assertNull(StatementUtil.reduceStatement(reducedXDI3Statement, XDI3Segment.create("($)"), false, true));
 	}
 }

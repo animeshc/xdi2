@@ -3,9 +3,6 @@ package xdi2.core.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import xdi2.core.ContextNode;
-import xdi2.core.Statement;
-import xdi2.core.Statement.ContextNodeStatement;
 import xdi2.core.constants.XDIConstants;
 import xdi2.core.exceptions.Xdi2ParseException;
 import xdi2.core.xri3.XDI3Segment;
@@ -66,7 +63,7 @@ public final class StatementUtil {
 	 */
 	public static XDI3Statement fromLiteralComponents(final XDI3Segment contextNodeXri, final String literalData) {
 
-		return fromComponents(contextNodeXri, XDIConstants.XRI_S_LITERAL, XDIUtil.stringToDataXriSegment(literalData));
+		return fromComponents(contextNodeXri, XDIConstants.XRI_S_LITERAL, XDIUtil.stringToLiteralSegment(literalData));
 	}
 
 	/**
@@ -89,46 +86,61 @@ public final class StatementUtil {
 	}
 
 	/**
-	 * Extracts a statement with a relative subject.
-	 * E.g. for =a*b*c*d and =a*b, this returns *c*d
+	 * Creates an expanded statement from a base XRI.
+	 * E.g. for *c*d/!/... and =a*b, this returns =a*b*c*d/!/...
 	 */
-	public static XDI3Statement relativeStatement(XDI3Statement statement, XDI3Segment base, boolean variablesInXri, boolean variablesInBase) {
+	public static XDI3Statement expandStatement(XDI3Statement statement, XDI3Segment base) {
 
-		if (log.isTraceEnabled()) log.trace("relativeStatement(" + statement + "," + base + "," + variablesInXri + "," + variablesInBase + ")");
+		if (log.isTraceEnabled()) log.trace("expandStatement(" + statement + "," + base + ")");
 
-		XDI3Segment subject = XRIUtil.relativeXri(statement.getSubject(), base, variablesInXri, variablesInBase);
+		XDI3Segment subject = XRIUtil.expandXri(statement.getSubject(), base);
 		XDI3Segment predicate = statement.getPredicate();
-		XDI3Segment object = statement.getObject();
-
-		if (subject == null) return null;
+		XDI3Segment object = (statement.isRelationStatement() && ! statement.hasInnerRootStatement()) ? XRIUtil.expandXri(statement.getObject(), base) : statement.getObject();
 
 		return fromComponents(subject, predicate, object);
 	}
 
 	/**
-	 * Extracts a statement with a relative subject.
-	 * E.g. for =a*b*c*d and =a*b, this returns *c*d
+	 * Creates a reduced statement from a base XRI.
+	 * E.g. for =a*b*c*d/!/... and =a*b, this returns *c*d/!/...
 	 */
-	public static XDI3Statement relativeStatement(XDI3Statement statement, XDI3Segment base) {
+	public static XDI3Statement reduceStatement(XDI3Statement statement, XDI3Segment base, boolean variablesInXri, boolean variablesInBase) {
 
-		return relativeStatement(statement, base, false, false);
+		if (log.isTraceEnabled()) log.trace("reduceStatement(" + statement + "," + base + "," + variablesInXri + "," + variablesInBase + ")");
+
+		XDI3Segment subject;
+		XDI3Segment predicate;
+		XDI3Segment object;
+
+		// subject
+
+		subject = statement.getSubject().equals(base) ? XDIConstants.XRI_S_ROOT : XRIUtil.reduceXri(statement.getSubject(), base, variablesInXri, variablesInBase);
+		if (subject == null) return null;
+
+		// predicate
+
+		predicate = statement.getPredicate();
+
+		// object
+
+		if (statement.isRelationStatement()) {
+
+			object = statement.getObject().equals(base) ? XDIConstants.XRI_S_ROOT : XRIUtil.reduceXri(statement.getObject(), base, variablesInXri, variablesInBase);
+			if (object == null) return null;
+		} else {
+
+			object = statement.getObject();
+		}
+
+		return fromComponents(subject, predicate, object);
 	}
 
 	/**
-	 * Checks if a statement is implied by other statements in the graph.
-	 * @param statement A statement.
-	 * @return True, if the statement is implied by other statements in the graph.
+	 * Creates a reduced statement from a base XRI.
+	 * E.g. for =a*b*c*d/!/... and =a*b, this returns *c*d/!/...
 	 */
-	public static boolean isImplied(Statement statement) {
+	public static XDI3Statement reduceStatement(XDI3Statement statement, XDI3Segment base) {
 
-		if (! (statement instanceof ContextNodeStatement)) return false;
-
-		ContextNode contextNode = ((ContextNodeStatement) statement).getContextNode();
-		if (contextNode == null) return false;
-
-		if (! contextNode.isEmpty()) return true;
-		if (contextNode.getIncomingRelations().hasNext()) return true;
-
-		return false;
+		return reduceStatement(statement, base, false, false);
 	}
 }

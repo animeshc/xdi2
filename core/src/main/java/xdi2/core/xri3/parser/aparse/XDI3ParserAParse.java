@@ -3,14 +3,18 @@ package xdi2.core.xri3.parser.aparse;
 import java.util.ArrayList;
 import java.util.List;
 
-import xdi2.core.xri3.XDI3InnerGraph;
+import xdi2.core.xri3.XDI3Parser;
 import xdi2.core.xri3.XDI3Segment;
 import xdi2.core.xri3.XDI3Statement;
 import xdi2.core.xri3.XDI3SubSegment;
 import xdi2.core.xri3.XDI3XRef;
-import xdi2.core.xri3.parser.XDI3Parser;
 
-public class XDI3ParserAParse implements XDI3Parser {
+/**
+ * An XRI parser based on the recursive-descent APG parser generator. 
+ * Parts of this parser have been automatically generated from an ABNF.  
+ * @see http://www.coasttocoastresearch.com/
+ */
+public class XDI3ParserAParse extends XDI3Parser {
 
 	@Override
 	public XDI3Statement parseXDI3Statement(String string) {
@@ -58,45 +62,7 @@ public class XDI3ParserAParse implements XDI3Parser {
 
 		// done
 
-		return new XDI3Statement(string, subject, predicate, object);
-	}
-
-	@Override
-	public XDI3InnerGraph parseXDI3InnerGraph(String string) {
-
-		return parseXDI3InnerGraph(Parser.parse("xdi-inner-graph", string));
-	}
-
-	private XDI3InnerGraph parseXDI3InnerGraph(Rule rule) {
-
-		String string = rule.spelling;
-		XDI3Segment subject = null;
-		XDI3Segment predicate = null;
-
-		// read xdi_subject from xdi_inner_graph
-
-		List<Rule> list_xdi_inner_graph = ((Rule_xdi_inner_graph) rule).rules;
-		rule = list_xdi_inner_graph.get(0);	// xdi_subject
-
-		// read xdi_segment from xdi_subject
-
-		List<Rule> list_xdi_subject = ((Rule_xdi_subject) rule).rules;
-		rule = list_xdi_subject.get(0); // xdi_segment
-		subject = parseXDI3Segment(rule);
-
-		// read xdi_predicate from xdi_inner_graph
-
-		rule = list_xdi_inner_graph.get(2);	// xdi_predicate
-
-		// read xdi_segment from xdi_predicate
-
-		List<Rule> list_xdi_predicate = ((Rule_xdi_predicate) rule).rules;
-		rule = list_xdi_predicate.get(0); // xdi_segment
-		predicate = parseXDI3Segment(rule);
-
-		// done
-
-		return new XDI3InnerGraph(string, subject, predicate);
+		return this.makeXDI3Statement(string, subject, predicate, object);
 	}
 
 	@Override
@@ -108,31 +74,13 @@ public class XDI3ParserAParse implements XDI3Parser {
 	private XDI3Segment parseXDI3Segment(Rule rule) {
 
 		String string = rule.spelling;
-		String literal = null;
 		List<XDI3SubSegment> subSegments = new ArrayList<XDI3SubSegment> ();
-
-		// read literal or subseg from xdi_segment
-
-		List<Rule> list_xdi_segment = ((Rule_xdi_segment) rule).rules;
-		rule = list_xdi_segment.get(0);	// literal or subseg
-
-		// literal or subseg?
-
-		if (rule instanceof Rule_literal) {
-
-			literal = ((Rule_literal) rule).spelling;
-		} else if (rule instanceof Rule_subseg) {
-
-			subSegments.add(parseXDI3SubSegment(rule));
-		} else {
-
-			throw new ClassCastException(rule.getClass().getName());
-		}
 
 		// read subsegs from xdi_segment
 
-		if (list_xdi_segment.size() < 2) return new XDI3Segment(rule.spelling, literal, subSegments);
-		for (int i=1; i<list_xdi_segment.size(); i++) {
+		List<Rule> list_xdi_segment = ((Rule_xdi_segment) rule).rules;
+
+		for (int i=0; i<list_xdi_segment.size(); i++) {
 
 			rule = list_xdi_segment.get(i);	// subseg
 			subSegments.add(parseXDI3SubSegment(rule));
@@ -140,7 +88,7 @@ public class XDI3ParserAParse implements XDI3Parser {
 
 		// done
 
-		return new XDI3Segment(string, literal, subSegments);
+		return this.makeXDI3Segment(string, subSegments);
 	}
 
 	@Override
@@ -179,7 +127,7 @@ public class XDI3ParserAParse implements XDI3Parser {
 
 			// read local_subseg or xref or literal from global_subseg
 
-			if (list_global_subseg.size() < 2) return new XDI3SubSegment(rule.spelling, gcs, lcs, literal, xref);
+			if (list_global_subseg.size() < 2) return this.makeXDI3SubSegment(rule.spelling, gcs, lcs, literal, xref);
 			rule = list_global_subseg.get(1);	// local_subseg or xref or literal
 		}
 
@@ -195,7 +143,7 @@ public class XDI3ParserAParse implements XDI3Parser {
 
 			// read xref or literal from local_subseg
 
-			if (list_local_subseg.size() < 2) return new XDI3SubSegment(rule.spelling, gcs, lcs, literal, xref);
+			if (list_local_subseg.size() < 2) return this.makeXDI3SubSegment(rule.spelling, gcs, lcs, literal, xref);
 			rule = list_local_subseg.get(1);	// xref or literal
 		}
 
@@ -211,7 +159,7 @@ public class XDI3ParserAParse implements XDI3Parser {
 
 		// done
 
-		return new XDI3SubSegment(string, gcs, lcs, literal, xref);
+		return this.makeXDI3SubSegment(string, gcs, lcs, literal, xref);
 	}
 
 	@Override
@@ -225,23 +173,24 @@ public class XDI3ParserAParse implements XDI3Parser {
 		String string = rule.spelling;
 		XDI3Segment segment = null;
 		XDI3Statement statement = null;
-		XDI3InnerGraph innerGraph = null;
+		XDI3Segment partialSubject = null;
+		XDI3Segment partialPredicate = null;
 		String IRI = null;
 		String literal = null;
 
-		// xref or xref_empty or or xref_IRI or xref_context or xref_inner_graph or xref_statement or xref_literal ?
+		// xref or xref_empty or or xref_IRI or xref_segment or xref_statement or xref_literal ?
 
 		if (rule instanceof Rule_xref) {
 
 			List<Rule> list_xref = ((Rule_xref) rule).rules;
-			rule = list_xref.get(0);	// xref_empty or or xref_IRI or xref_subject or xref_inner or xref_statement
+			rule = list_xref.get(0);	// xref_empty or or xref_IRI or xref_segment or xref_subject_predicate or xref_statement
 		} else if (rule instanceof Rule_xref_empty) {
 
 		} else if (rule instanceof Rule_xref_IRI) {
 
-		} else if (rule instanceof Rule_xref_context) {
+		} else if (rule instanceof Rule_xref_segment) {
 
-		} else if (rule instanceof Rule_xref_inner_graph) {
+		} else if (rule instanceof Rule_xref_subject_predicate) {
 
 		} else if (rule instanceof Rule_xref_statement) {
 
@@ -252,7 +201,7 @@ public class XDI3ParserAParse implements XDI3Parser {
 			throw new ClassCastException(rule.getClass().getName());
 		}
 
-		// xref_empty or or xref_IRI or xref_context or xref_inner_graph or xref_statement or xref_literal ?
+		// xref_empty or or xref_IRI or xref_segment or xref_subject_predicate or xref_statement or xref_literal ?
 
 		if (rule instanceof Rule_xref_empty) {
 
@@ -263,32 +212,36 @@ public class XDI3ParserAParse implements XDI3Parser {
 			List<Rule> list_xref_IRI = ((Rule_xref_IRI) rule).rules;
 			rule = list_xref_IRI.get(1);	// IRI
 			IRI = ((Rule_IRI) rule).spelling;
-		} else if (rule instanceof Rule_xref_context) {
+		} else if (rule instanceof Rule_xref_segment) {
 
-			// read xdi_context from xref_context
+			// read xdi_segment from xref_segment
 
-			List<Rule> list_xref_context = ((Rule_xref_context) rule).rules;
-			rule = list_xref_context.get(1);	// xdi_context
+			List<Rule> list_xref_segment = ((Rule_xref_segment) rule).rules;
+			rule = list_xref_segment.get(1);	// xdi_segment
 
-			// read xdi_subject from xdi_context
+			segment = parseXDI3Segment(rule);
+		} else if (rule instanceof Rule_xref_subject_predicate) {
 
-			List<Rule> list_xdi_context = ((Rule_xdi_context) rule).rules;
-			rule = list_xdi_context.get(0);	// xdi_subject
+			// read xdi_subject from xref_subject_predicate
+
+			List<Rule> list_xref_subject_predicate = ((Rule_xref_subject_predicate) rule).rules;
+			rule = list_xref_subject_predicate.get(1);	// xdi_subject
 
 			// read xdi_segment from xdi_subject
 
 			List<Rule> list_xdi_subject = ((Rule_xdi_subject) rule).rules;
-			rule = list_xdi_subject.get(0);	// xdi_segment
+			rule = list_xdi_subject.get(0); // xdi_segment
+			partialSubject = parseXDI3Segment(rule);
 
-			segment = parseXDI3Segment(rule);
-		} else if (rule instanceof Rule_xref_inner_graph) {
+			// read xdi_predicate from xref_subject_predicate
 
-			// read xdi_inner_graph from xref_inner_graph
+			rule = list_xref_subject_predicate.get(3);	// xdi_predicate
 
-			List<Rule> list_xref_inner_graph = ((Rule_xref_inner_graph) rule).rules;
-			rule = list_xref_inner_graph.get(1);	// xdi_inner_graph
+			// read xdi_segment from xdi_predicate
 
-			innerGraph = parseXDI3InnerGraph(rule);
+			List<Rule> list_xdi_predicate = ((Rule_xdi_predicate) rule).rules;
+			rule = list_xdi_predicate.get(0); // xdi_segment
+			partialPredicate = parseXDI3Segment(rule);
 		} else if (rule instanceof Rule_xref_statement) {
 
 			// read xdi_statement from xref_statement
@@ -297,7 +250,6 @@ public class XDI3ParserAParse implements XDI3Parser {
 			rule = list_xref_statement.get(1);	// xdi_statement
 
 			statement = parseXDI3Statement(rule);
-
 		} else if (rule instanceof Rule_xref_literal) {
 
 			// read literal from xref_literal
@@ -312,6 +264,6 @@ public class XDI3ParserAParse implements XDI3Parser {
 
 		// done
 
-		return new XDI3XRef(string, segment, statement, innerGraph, IRI, literal);
+		return this.makeXDI3XRef(string, segment, statement, partialSubject, partialPredicate, IRI, literal);
 	}
 }

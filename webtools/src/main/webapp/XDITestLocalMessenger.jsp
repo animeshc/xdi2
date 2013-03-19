@@ -8,10 +8,11 @@
 <title>XDI (Test) Local Messenger</title>
 <link rel="stylesheet" target="_blank" href="style.css" TYPE="text/css" MEDIA="screen">
 </head>
-<body style="background-image: url('images/back.png'); background-repeat: repeat-y; margin-left: 60px;">
-
+<body>
+	<div id="imgtop"><img id="imgtopleft" src="images/xdi2-topleft.png"><img id="imgtopright" src="images/xdi2-topright.png"></div>
+	<div id="main">
 	<div class="header">
-	<img src="images/logo64.png" align="middle">&nbsp;&nbsp;&nbsp;<span id="appname">XDI (Test) Local Messenger</span>
+	<span id="appname">XDI (Test) Local Messenger</span>
 	&nbsp;&nbsp;&nbsp;&nbsp;
 	<a href="index.jsp">&gt;&gt;&gt; Other Apps...</a>
 	</div>
@@ -45,7 +46,7 @@
 		</table>
 
 		<% String resultFormat = (String) request.getAttribute("resultFormat"); if (resultFormat == null) resultFormat = ""; %>
-		<% String writeContexts = (String) request.getAttribute("writeContexts"); if (writeContexts == null) writeContexts = ""; %>
+		<% String writeImplied = (String) request.getAttribute("writeImplied"); if (writeImplied == null) writeImplied = ""; %>
 		<% String writeOrdered = (String) request.getAttribute("writeOrdered"); if (writeOrdered == null) writeOrdered = ""; %>
 		<% String writePretty = (String) request.getAttribute("writePretty"); if (writePretty == null) writePretty = ""; %>
 		<% String variablesSupport = (String) request.getAttribute("variablesSupport"); if (variablesSupport == null) variablesSupport = ""; %>
@@ -59,7 +60,7 @@
 		</select>
 		&nbsp;
 
-		<input name="writeContexts" type="checkbox" <%= writeContexts.equals("on") ? "checked" : "" %>>contexts=1
+		<input name="writeImplied" type="checkbox" <%= writeImplied.equals("on") ? "checked" : "" %>>implied=1
 
 		<input name="writeOrdered" type="checkbox" <%= writeOrdered.equals("on") ? "checked" : "" %>>ordered=1
 
@@ -89,6 +90,7 @@
 	<% if (request.getAttribute("output") != null) { %>
 		<div class="result"><pre><%= request.getAttribute("output") != null ? request.getAttribute("output") : "" %></pre></div><br>
 	<% } %>
-	
+
+	</div>	
 </body>
 </html>

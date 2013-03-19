@@ -7,6 +7,7 @@ import java.util.List;
 import xdi2.core.ContextNode;
 import xdi2.core.features.multiplicity.Multiplicity.MappingContextNodeAttributeMemberIterator;
 import xdi2.core.features.multiplicity.Multiplicity.MappingContextNodeEntityMemberIterator;
+import xdi2.core.features.ordering.Ordering;
 import xdi2.core.util.iterators.CompositeIterator;
 import xdi2.core.util.iterators.EmptyIterator;
 import xdi2.core.util.iterators.IteratorCounter;
@@ -114,7 +115,7 @@ public final class XdiCollection extends XdiSubGraph {
 			contextNodes = this.getContextNode().getContextNodes();
 		} else if (ordered && unordered) {
 
-			List<Iterator<ContextNode>> iterators = new ArrayList<Iterator<ContextNode>> ();
+			List<Iterator<? extends ContextNode>> iterators = new ArrayList<Iterator<? extends ContextNode>> ();
 			iterators.add(Ordering.getOrderedContextNodes(this.getContextNode()));
 			iterators.add(this.getContextNode().getContextNodes());
 
@@ -147,7 +148,7 @@ public final class XdiCollection extends XdiSubGraph {
 			contextNodes = this.getContextNode().getContextNodes();
 		} else if (ordered && unordered) {
 
-			List<Iterator<ContextNode>> iterators = new ArrayList<Iterator<ContextNode>> ();
+			List<Iterator<? extends ContextNode>> iterators = new ArrayList<Iterator<? extends ContextNode>> ();
 			iterators.add(Ordering.getOrderedContextNodes(this.getContextNode()));
 			iterators.add(this.getContextNode().getContextNodes());
 

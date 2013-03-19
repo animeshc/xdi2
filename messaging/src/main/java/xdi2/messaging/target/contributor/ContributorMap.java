@@ -122,7 +122,7 @@ public class ContributorMap extends LinkedHashMap<XDI3Segment, List<Contributor>
 		XDI3Segment nextContributorXri = this.findHigherContributorXri(relativeContextNodeXri);
 		if (nextContributorXri == null) return false;
 
-		XDI3Segment nextRelativeTargetAddress = XRIUtil.relativeXri(relativeTargetAddress, nextContributorXri, false, true);
+		XDI3Segment nextRelativeTargetAddress = XRIUtil.reduceXri(relativeTargetAddress, nextContributorXri, false, true);
 		XDI3Segment nextRelativeContextNodeXri = nextRelativeTargetAddress;
 
 		XDI3Segment[] nextContributorXris = Arrays.copyOf(contributorXris, contributorXris.length + 1);
@@ -147,6 +147,9 @@ public class ContributorMap extends LinkedHashMap<XDI3Segment, List<Contributor>
 					if (log.isDebugEnabled()) log.debug("Address has been fully handled by contributor " + contributor.getClass().getSimpleName() + ".");
 					return true;
 				}
+			} catch (Exception ex) {
+
+				throw executionContext.processException(ex);
 			} finally {
 
 				executionContext.popContributor();
@@ -167,7 +170,7 @@ public class ContributorMap extends LinkedHashMap<XDI3Segment, List<Contributor>
 		XDI3Segment nextContributorXri = this.findHigherContributorXri(relativeContextNodeXri);
 		if (nextContributorXri == null) return false;
 
-		XDI3Statement nextRelativeTargetStatement = StatementUtil.relativeStatement(relativeTargetStatement, nextContributorXri, false, true);
+		XDI3Statement nextRelativeTargetStatement = StatementUtil.reduceStatement(relativeTargetStatement, nextContributorXri, false, true);
 		XDI3Segment nextRelativeContextNodeXri = nextRelativeTargetStatement == null ? null : nextRelativeTargetStatement.getContextNodeXri();
 
 		XDI3Segment[] nextContributorXris = Arrays.copyOf(contributorXris, contributorXris.length + 1);
@@ -192,6 +195,9 @@ public class ContributorMap extends LinkedHashMap<XDI3Segment, List<Contributor>
 					if (log.isDebugEnabled()) log.debug("Statement has been fully handled by contributor " + contributor.getClass().getSimpleName() + ".");
 					return true;
 				}
+			} catch (Exception ex) {
+
+				throw executionContext.processException(ex);
 			} finally {
 
 				executionContext.popContributor();

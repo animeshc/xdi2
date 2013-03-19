@@ -3,12 +3,6 @@
 	xmlns:util="http://www.springframework.org/schema/util" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
-	<!-- XDI FILTER -->
-
-	<bean id="EndpointFilter" class="xdi2.server.EndpointFilter">
-		<property name="endpointServlet" ref="EndpointServlet" />
-	</bean>
-
 	<!-- XDI SERVLET -->
 
 	<bean id="EndpointServlet" class="xdi2.server.EndpointServlet" init-method="init" destroy-method="destroy">
@@ -30,7 +24,6 @@
 		<property name="converters">
 			<list>
 				<bean class="xdi2.server.spring.StringXDI3StatementConverter" />
-				<bean class="xdi2.server.spring.StringXDI3InnerGraphConverter" />
 				<bean class="xdi2.server.spring.StringXDI3SegmentConverter" />
 				<bean class="xdi2.server.spring.StringXDI3SubSegmentConverter" />
 				<bean class="xdi2.server.spring.StringXDI3XRefConverter" />
@@ -93,8 +86,8 @@
 				</bean>
 				<bean class="xdi2.messaging.target.interceptor.impl.VariablesInterceptor" />
 				<bean class="xdi2.messaging.target.interceptor.impl.RefInterceptor" />
-				<bean class="xdi2.messaging.target.interceptor.impl.CheckOwnerInterceptor" />
-				<bean class="xdi2.messaging.target.interceptor.impl.LinkContractsInterceptor" />
+				<bean class="xdi2.messaging.target.interceptor.impl.ToInterceptor" />
+				<bean class="xdi2.messaging.target.interceptor.impl.LinkContractInterceptor" />
 				<ref bean="facebookContributor" />
 				<ref bean="personalContributor" />
 				<ref bean="allfiledContributor" />
@@ -149,8 +142,8 @@
 				</bean>
 				<bean class="xdi2.messaging.target.interceptor.impl.VariablesInterceptor" />
 				<bean class="xdi2.messaging.target.interceptor.impl.RefInterceptor" />
-				<bean class="xdi2.messaging.target.interceptor.impl.CheckOwnerInterceptor" />
-				<bean class="xdi2.messaging.target.interceptor.impl.LinkContractsInterceptor">
+				<bean class="xdi2.messaging.target.interceptor.impl.ToInterceptor" />
+				<bean class="xdi2.messaging.target.interceptor.impl.LinkContractInterceptor">
 					<property name="linkContractsGraph" ref="registrygraph" />
 				</bean>
 			</util:list>
@@ -232,8 +225,8 @@
 				</bean>
 				<bean class="xdi2.messaging.target.interceptor.impl.VariablesInterceptor" />
 				<bean class="xdi2.messaging.target.interceptor.impl.RefInterceptor" />
-				<bean class="xdi2.messaging.target.interceptor.impl.CheckOwnerInterceptor" />
-				<bean class="xdi2.messaging.target.interceptor.impl.LinkContractsInterceptor">
+				<bean class="xdi2.messaging.target.interceptor.impl.ToInterceptor" />
+				<bean class="xdi2.messaging.target.interceptor.impl.LinkContractInterceptor">
 					<property name="linkContractsGraph" ref="graph4" />
 				</bean>
 			</util:list>
