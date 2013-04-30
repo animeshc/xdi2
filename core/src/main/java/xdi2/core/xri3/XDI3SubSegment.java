@@ -1,44 +1,44 @@
 package xdi2.core.xri3;
 
-
-
 public class XDI3SubSegment extends XDI3SyntaxComponent {
 
 	private static final long serialVersionUID = -645927779266394209L;
 
-	private Character gcs;
-	private Character lcs;
+	private Character cs;
+	private boolean singleton;
+	private boolean attribute;
 	private String literal;
 	private XDI3XRef xref;
 
-	XDI3SubSegment(String string, Character gcs, Character lcs, String literal, XDI3XRef xref) {
+	XDI3SubSegment(String string, Character cs, boolean singleton, boolean attribute, String literal, XDI3XRef xref) {
 
 		super(string);
 
-		this.gcs = gcs;
-		this.lcs = lcs;
+		this.cs = cs;
+		this.singleton = singleton;
+		this.attribute = attribute;
 		this.literal = literal;
 		this.xref = xref;
 	}
 
-	public static XDI3SubSegment create(XDI3Parser parser, String string) {
-
-		return parser.parseXDI3SubSegment(string);
-	}
-
 	public static XDI3SubSegment create(String string) {
 
-		return create(XDI3ParserRegistry.getInstance().getParser(), string);
+		return XDI3ParserRegistry.getInstance().getParser().parseXDI3SubSegment(string);
 	}
 
-	public boolean hasGCS() {
+	public boolean hasCs() {
 
-		return this.gcs != null;
+		return this.cs != null;
 	}
 
-	public boolean hasLCS() {
+	public boolean isSingleton() {
 
-		return this.lcs != null;
+		return this.singleton;
+	}
+
+	public boolean isAttribute() {
+
+		return this.attribute;
 	}
 
 	public boolean hasLiteral() {
@@ -51,14 +51,9 @@ public class XDI3SubSegment extends XDI3SyntaxComponent {
 		return this.xref != null;
 	}
 
-	public Character getGCS() {
+	public Character getCs() {
 
-		return this.gcs;
-	}
-
-	public Character getLCS() {
-
-		return this.lcs;
+		return this.cs;
 	}
 
 	public String getLiteral() {
@@ -69,25 +64,5 @@ public class XDI3SubSegment extends XDI3SyntaxComponent {
 	public XDI3XRef getXRef() {
 
 		return this.xref;
-	}
-
-	public boolean isGlobal() {
-
-		return this.hasGCS();
-	}
-
-	public boolean isLocal() {
-
-		return this.hasLCS() && ! this.hasGCS();
-	}
-
-	public boolean isPersistent() {
-
-		return this.hasLCS() && this.getLCS().equals(XRI3Constants.LCS_BANG);
-	}
-
-	public boolean isReassignable() {
-
-		return (this.hasGCS() && ! this.hasLCS()) || (this.hasLCS() && this.getLCS().equals(XRI3Constants.LCS_STAR));
 	}
 }

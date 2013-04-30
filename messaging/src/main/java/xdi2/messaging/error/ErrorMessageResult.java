@@ -7,10 +7,11 @@ import xdi2.core.Graph;
 import xdi2.core.Literal;
 import xdi2.core.Relation;
 import xdi2.core.Statement.RelationStatement;
-import xdi2.core.features.multiplicity.XdiAttributeSingleton;
-import xdi2.core.features.multiplicity.XdiSubGraph;
-import xdi2.core.features.roots.InnerRoot;
-import xdi2.core.features.roots.Roots;
+import xdi2.core.features.nodetypes.XdiAbstractSubGraph;
+import xdi2.core.features.nodetypes.XdiAttributeSingleton;
+import xdi2.core.features.nodetypes.XdiValue;
+import xdi2.core.features.roots.XdiInnerRoot;
+import xdi2.core.features.roots.XdiLocalRoot;
 import xdi2.core.features.timestamps.Timestamps;
 import xdi2.core.util.CopyUtil;
 import xdi2.core.xri3.XDI3Segment;
@@ -25,7 +26,7 @@ public class ErrorMessageResult extends MessageResult {
 	private static final long serialVersionUID = 8816468280233966339L;
 
 	public static final XDI3Segment XRI_S_FALSE = XDI3Segment.create("$false");
-	public static final XDI3Segment XRI_S_ERROR = XDI3Segment.create("$error");
+	public static final XDI3Segment XRI_S_ERROR = XDI3Segment.create("[<$error>]");
 
 	public static final XDI3SubSegment XRI_SS_FALSE = XDI3SubSegment.create("$false");
 
@@ -54,7 +55,7 @@ public class ErrorMessageResult extends MessageResult {
 
 		if (! MessageResult.isValid(graph)) return false;
 
-		if (! graph.getRootContextNode().containsContextNode(XRI_SS_FALSE)) return false;
+		if (XdiAbstractSubGraph.fromContextNode(graph.getRootContextNode()).getXdiAttributeSingleton(XRI_SS_FALSE, false) == null) return false;
 
 		return true;
 	}
@@ -124,10 +125,13 @@ public class ErrorMessageResult extends MessageResult {
 
 	public String getErrorString() {
 
-		XdiAttributeSingleton errorStringAttributeSingleton = XdiSubGraph.fromContextNode(this.getGraph().getRootContextNode()).getAttributeSingleton(XRI_SS_FALSE, false);
-		if (errorStringAttributeSingleton == null) return null;
+		XdiAttributeSingleton xdiAttributeSingleton = XdiAbstractSubGraph.fromContextNode(this.getGraph().getRootContextNode()).getXdiAttributeSingleton(XRI_SS_FALSE, false);
+		if (xdiAttributeSingleton == null) return null;
 
-		Literal errorStringLiteral = errorStringAttributeSingleton.getContextNode().getLiteral();
+		XdiValue xdiValue = xdiAttributeSingleton.getXdiValue(false);
+		if (xdiValue == null) return null;
+
+		Literal errorStringLiteral = xdiValue.getContextNode().getLiteral();
 		if (errorStringLiteral == null) return null;
 
 		return errorStringLiteral.getLiteralData();
@@ -135,19 +139,20 @@ public class ErrorMessageResult extends MessageResult {
 
 	public void setErrorString(String errorString) {
 
-		XdiAttributeSingleton errorStringAttributeSingleton = XdiSubGraph.fromContextNode(this.getGraph().getRootContextNode()).getAttributeSingleton(XRI_SS_FALSE, true);
+		XdiAttributeSingleton xdiAttributeSingleton = XdiAbstractSubGraph.fromContextNode(this.getGraph().getRootContextNode()).getXdiAttributeSingleton(XRI_SS_FALSE, true);
+		XdiValue xdiValue = xdiAttributeSingleton.getXdiValue(true);
 
-		Literal errorStringLiteral = errorStringAttributeSingleton.getContextNode().getLiteral();
+		Literal errorStringLiteral = xdiValue.getContextNode().getLiteral();
 
 		if (errorStringLiteral != null) 
 			errorStringLiteral.setLiteralData(errorString); 
 		else
-			errorStringAttributeSingleton.getContextNode().createLiteral(errorString);
+			xdiValue.getContextNode().createLiteral(errorString);
 	}
 
 	public void setErrorOperation(Operation operation) {
 
-		InnerRoot innerRoot = Roots.findLocalRoot(this.getGraph()).findInnerRoot(XRI_S_FALSE, XRI_S_ERROR, true);
+		XdiInnerRoot innerRoot = XdiLocalRoot.findLocalRoot(this.getGraph()).findInnerRoot(XRI_S_FALSE, XRI_S_ERROR, true);
 		innerRoot.getContextNode().clear();
 
 		Relation relation = ((RelationStatement) innerRoot.createRelativeStatement(operation.getRelation().getStatement().getXri())).getRelation();

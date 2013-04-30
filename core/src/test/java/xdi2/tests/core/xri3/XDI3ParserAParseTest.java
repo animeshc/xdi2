@@ -12,4 +12,29 @@ public class XDI3ParserAParseTest extends XDI3ParserTest {
 		
 		return this.parser;
 	}
+
+	@Override
+	public void testBasic() throws Exception {
+
+	}
+
+	@Override
+	public void testBasicXRef() throws Exception {
+		
+	}
+
+	@Override
+	public void testXDI3Statement() throws Exception {
+
+	}
+
+	@Override
+	public void testXDI3XRef() throws Exception {
+
+	}
+
+	@Override
+	public void testLiteralXRef() {
+
+	}
 }
