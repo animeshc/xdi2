@@ -11,8 +11,8 @@ import xdi2.core.constants.XDIPolicyConstants;
 import xdi2.core.features.linkcontracts.policy.PolicyRoot;
 import xdi2.core.features.nodetypes.XdiEntity;
 import xdi2.core.features.nodetypes.XdiEntitySingleton;
-import xdi2.core.features.roots.XdiInnerRoot;
-import xdi2.core.features.roots.XdiLocalRoot;
+import xdi2.core.features.nodetypes.XdiInnerRoot;
+import xdi2.core.features.nodetypes.XdiLocalRoot;
 import xdi2.core.features.timestamps.Timestamps;
 import xdi2.core.util.iterators.IteratorCounter;
 import xdi2.core.util.iterators.IteratorListMaker;
@@ -153,9 +153,7 @@ public final class Message implements Serializable, Comparable<Message> {
 	 */
 	public void setFromAddress(XDI3Segment fromAddress) {
 
-		ContextNode fromAddressContextNode = this.getMessageEnvelope().getGraph().findContextNode(fromAddress, true);
-
-		fromAddressContextNode.createRelation(XDIMessagingConstants.XRI_S_FROM_ADDRESS, this.getContextNode());
+		this.getMessageEnvelope().getGraph().setDeepRelation(fromAddress, XDIMessagingConstants.XRI_S_FROM_ADDRESS, this.getContextNode());
 	}
 
 	/**

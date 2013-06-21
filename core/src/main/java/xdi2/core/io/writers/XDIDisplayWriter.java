@@ -68,7 +68,7 @@ public class XDIDisplayWriter extends AbstractXDIWriter {
 		this.writePretty = "1".equals(this.parameters.getProperty(XDIWriterRegistry.PARAMETER_PRETTY, XDIWriterRegistry.DEFAULT_PRETTY));
 		this.writeHtml = "1".equals(this.parameters.getProperty(XDIWriterRegistry.PARAMETER_HTML, XDIWriterRegistry.DEFAULT_HTML));
 
-		if (log.isDebugEnabled()) log.debug("Parameters: writeImplied=" + this.writeImplied + ", writeOrdered=" + this.writeOrdered + ", writeInner=" + this.writeInner + ", writePretty=" + this.writePretty + ", writeHtml=" + this.writeHtml);
+		if (log.isTraceEnabled()) log.trace("Parameters: writeImplied=" + this.writeImplied + ", writeOrdered=" + this.writeOrdered + ", writeInner=" + this.writeInner + ", writePretty=" + this.writePretty + ", writeHtml=" + this.writeHtml);
 	}
 
 	public void write(Graph graph, BufferedWriter bufferedWriter) throws IOException {
@@ -121,21 +121,22 @@ public class XDIDisplayWriter extends AbstractXDIWriter {
 
 					bufferedWriter.write("<span style=\"color:" + HTML_COLOR_CONTEXTNODE + "\">");
 					this.writeStatement(bufferedWriter, statement);
-					bufferedWriter.write("</span><br>\n");
+					bufferedWriter.write("</span>\n");
 				} else if (statement instanceof RelationStatement) {
 
 					bufferedWriter.write("<span style=\"color:" + HTML_COLOR_RELATION + "\">");
 					this.writeStatement(bufferedWriter, statement);
-					bufferedWriter.write("</span><br>\n");
+					bufferedWriter.write("</span>\n");
 				} else if (statement instanceof LiteralStatement) {
 
 					bufferedWriter.write("<span style=\"color:" + HTML_COLOR_LITERAL + "\">");
 					this.writeStatement(bufferedWriter, statement);
-					bufferedWriter.write("</span><br>\n");
+					bufferedWriter.write("</span>\n");
 				}
 			} else {
 
 				this.writeStatement(bufferedWriter, statement);
+				bufferedWriter.write("\n");
 			}
 		}
 
@@ -165,10 +166,9 @@ public class XDIDisplayWriter extends AbstractXDIWriter {
 		builder.append(statementXri.getPredicate());
 		builder.append(this.writePretty ? "\t" : "/");
 		builder.append(StatementUtil.statementObjectToString(statementXri.getObject()));
-		builder.append(this.writeHtml ? "" : "\n");
 
 		String string = builder.toString();
-		if (this.writeHtml) string = string.replaceAll("\t", "&#9;");
+		if (this.writePretty && this.writeHtml) string = string.replaceAll("\t", "&#9;");
 
 		bufferedWriter.write(string);
 	}

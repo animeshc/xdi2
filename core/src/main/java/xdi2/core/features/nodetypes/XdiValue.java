@@ -6,7 +6,6 @@ import xdi2.core.ContextNode;
 import xdi2.core.constants.XDIConstants;
 import xdi2.core.util.iterators.MappingIterator;
 import xdi2.core.util.iterators.NotNullIterator;
-import xdi2.core.xri3.XDI3Constants;
 import xdi2.core.xri3.XDI3SubSegment;
 
 /**
@@ -34,7 +33,8 @@ public final class XdiValue extends XdiAbstractSubGraph {
 	 */
 	public static boolean isValid(ContextNode contextNode) {
 
-		return isValidArcXri(contextNode.getArcXri());
+		return isValidArcXri(contextNode.getArcXri()) &&
+				XdiAbstractAttribute.isValid(contextNode.getContextNode());
 	}
 
 	/**
@@ -50,10 +50,6 @@ public final class XdiValue extends XdiAbstractSubGraph {
 	}
 
 	/*
-	 * Instance methods
-	 */
-
-	/*
 	 * Methods for XRIs
 	 */
 
@@ -66,12 +62,12 @@ public final class XdiValue extends XdiAbstractSubGraph {
 
 		if (arcXri == null) return false;
 
-		if (arcXri.isSingleton()) return false;
-		if (arcXri.isAttribute()) return false;
+		if (arcXri.isClassXs()) return false;
+		if (arcXri.isAttributeXs()) return false;
 		if (arcXri.hasLiteral()) return false;
 		if (arcXri.hasXRef()) return false;
 
-		if (! XDI3Constants.CS_VALUE.equals(arcXri.getCs())) return false;
+		if (! XDIConstants.CS_VALUE.equals(arcXri.getCs())) return false;
 
 		return true;
 	}

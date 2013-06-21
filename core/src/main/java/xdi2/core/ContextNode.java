@@ -83,30 +83,50 @@ public interface ContextNode extends Serializable, Comparable<ContextNode> {
 
 	/**
 	 * Creates a new context node and adds it to this context node.
-	 * @param arcXri The arc XRI of the new context node.
+	 * @param contextNodeArcXri The arc XRI of the new context node.
 	 * @return The newly created context node.
 	 */
-	public ContextNode createContextNode(XDI3SubSegment arcXri);
+	public ContextNode createContextNode(XDI3SubSegment contextNodeArcXri);
 
 	/**
-	 * Creates new context nodes and adds them to this context node.
-	 * @param arcXris The arc XRIs of the new context nodes.
-	 * @return The newly created final context node.
+	 * Deep version of ContextNode.createContextNode(XDI3SubSegment), operates at a context node further down in the graph.
 	 */
-	public ContextNode createContextNodes(XDI3Segment arcXris);
+	public ContextNode createDeepContextNode(XDI3Segment contextNodeArcXris);
 
 	/**
-	 * Returns a context node with a given arc XRI. 
-	 * @param arcXri The arc XRI to look for. 
+	 * Creates a new context node and adds it to this context node, or returns an existing context node.
+	 * @param contextNodeArcXri The arc XRI of the new or existing context node.
+	 * @return The newly created or existing context node.
+	 */
+	public ContextNode setContextNode(XDI3SubSegment contextNodeArcXri);
+
+	/**
+	 * Deep version of ContextNode.setContextNode(XDI3SubSegment), operates at a context node further down in the graph.
+	 */
+	public ContextNode setDeepContextNode(XDI3Segment contextNodeArcXris);
+
+	/**
+	 * Returns the context node with a given arc XRI.
+	 * @param contextNodeArcXri The arc XRI of the context node.
 	 * @return The context node with the given arc XRI, or null.
 	 */
-	public ContextNode getContextNode(XDI3SubSegment arcXri);
+	public ContextNode getContextNode(XDI3SubSegment contextNodeArcXri);
+
+	/**
+	 * Deep version of ContextNode.getContextNode(XDI3SubSegment), operates at a context node further down in the graph.
+	 */
+	public ContextNode getDeepContextNode(XDI3Segment contextNodeArcXris);
 
 	/**
 	 * Returns the context nodes of this context node.
 	 * @return An iterator over context nodes.
 	 */
 	public ReadOnlyIterator<ContextNode> getContextNodes();
+
+	/**
+	 * Deep version of ContextNode.getContextNodes(), operates at a context node further down in the graph.
+	 */
+	public ReadOnlyIterator<ContextNode> getDeepContextNodes(XDI3Segment contextNodeArcXris);
 
 	/**
 	 * Returns all context nodes of this context node.
@@ -122,10 +142,10 @@ public interface ContextNode extends Serializable, Comparable<ContextNode> {
 
 	/**
 	 * Checks if a context node with a given arc XRI exists in this context node.
-	 * @param arcXri The arc XRI to look for. 
+	 * @param contextNodeArcXri The arc XRI to look for. 
 	 * @return True if this context node has a context node with the given arc XRI.
 	 */
-	public boolean containsContextNode(XDI3SubSegment arcXri);
+	public boolean containsContextNode(XDI3SubSegment contextNodeArcXri);
 
 	/**
 	 * Checks if this context node has one or more context nodes.
@@ -134,18 +154,10 @@ public interface ContextNode extends Serializable, Comparable<ContextNode> {
 	public boolean containsContextNodes();
 
 	/**
-	 * Finds a context node at any depth under this context node.
-	 * @param xri The relative XRI of the context node.
-	 * @param create Whether or not to create context nodes if they don't exist.
-	 * @return A context node or null.
+	 * Deletes the context node with a given arc XRI.
+	 * @param contextNodeArcXri The arc XRI of this context arc.
 	 */
-	public ContextNode findContextNode(XDI3Segment xri, boolean create);
-
-	/**
-	 * Deletes the context node with a given arc XRI from this context node.
-	 * @param arcXri The arc XRI of this context arc.
-	 */
-	public void deleteContextNode(XDI3SubSegment arcXri);
+	public void deleteContextNode(XDI3SubSegment contextNodeArcXri);
 
 	/**
 	 * Deletes all context nodes from this context node.
@@ -177,6 +189,11 @@ public interface ContextNode extends Serializable, Comparable<ContextNode> {
 	public Relation createRelation(XDI3Segment arcXri, XDI3Segment targetContextNodeXri);
 
 	/**
+	 * Deep version of ContextNode.ContextNode.createRelation(XDI3Segment, XDI3Segment), operates at a context node further down in the graph.
+	 */
+	public Relation createDeepRelation(XDI3Segment contextNodeArcXris, XDI3Segment arcXri, XDI3Segment targetContextNodeXri);
+
+	/**
 	 * Creates a new relation and adds it to this context node.
 	 * @param arcXri The arc XRI of the relation.
 	 * @param targetContextNode The target context node of the relation.
@@ -185,7 +202,38 @@ public interface ContextNode extends Serializable, Comparable<ContextNode> {
 	public Relation createRelation(XDI3Segment arcXri, ContextNode targetContextNode);
 
 	/**
-	 * Returns a relation with a given arc XRI and context node. 
+	 * Deep version of ContextNode.ContextNode.createRelation(XDI3Segment, ContextNode), operates at a context node further down in the graph.
+	 */
+	public Relation createDeepRelation(XDI3Segment contextNodeArcXris, XDI3Segment arcXri, ContextNode targetContextNode);
+
+	/**
+	 * Creates a new relation and adds it to this context node, or returns an existing relation.
+	 * @param arcXri The arc XRI of the relation.
+	 * @param targetContextNodeXri The target context node XRI of the relation.
+	 * @return The newly created or existing relation.
+	 */
+	public Relation setRelation(XDI3Segment arcXri, XDI3Segment targetContextNodeXri);
+
+	/**
+	 * Deep version of ContextNode.ContextNode.setRelation(XDI3Segment, XDI3Segment), operates at a context node further down in the graph.
+	 */
+	public Relation setDeepRelation(XDI3Segment contextNodeArcXris, XDI3Segment arcXri, XDI3Segment targetContextNodeXri);
+
+	/**
+	 * Creates a new relation and adds it to this context node, or returns an existing relation.
+	 * @param arcXri The arc XRI of the relation.
+	 * @param targetContextNode The target context node of the relation.
+	 * @return The newly created or existing relation.
+	 */
+	public Relation setRelation(XDI3Segment arcXri, ContextNode targetContextNode);
+
+	/**
+	 * Deep version of ContextNode.ContextNode.setRelation(XDI3Segment, ContextNode), operates at a context node further down in the graph.
+	 */
+	public Relation setDeepRelation(XDI3Segment contextNodeArcXris, XDI3Segment arcXri, ContextNode targetContextNode);
+
+	/**
+	 * Returns a relation at this context node. 
 	 * @param arcXri The arc XRI to look for. 
 	 * @param targetContextNodeXri The target context node XRI of the relation.
 	 * @return The relation with the given arc XRI, or null.
@@ -193,24 +241,44 @@ public interface ContextNode extends Serializable, Comparable<ContextNode> {
 	public Relation getRelation(XDI3Segment arcXri, XDI3Segment targetContextNodeXri);
 
 	/**
-	 * Returns a relation with a given arc XRI. 
+	 * Deep version of ContextNode.ContextNode.getRelation(XDI3Segment, XDI3Segment), operates at a context node further down in the graph.
+	 */
+	public Relation getDeepRelation(XDI3Segment contextNodeArcXris, XDI3Segment arcXri, XDI3Segment targetContextNodeXri);
+
+	/**
+	 * Returns a relation at this context node. 
 	 * @param arcXri The arc XRI to look for. 
 	 * @return The relation with the given arc XRI, or null.
 	 */
 	public Relation getRelation(XDI3Segment arcXri);
 
 	/**
-	 * Returns the relations with a given arc XRI. 
+	 * Deep version of ContextNode.ContextNode.getRelation(XDI3Segment), operates at a context node further down in the graph.
+	 */
+	public Relation getDeepRelation(XDI3Segment contextNodeArcXris, XDI3Segment arcXri);
+
+	/**
+	 * Returns relations at this context node. 
 	 * @param arcXri The arc XRI to look for. 
 	 * @return An iterator over relations with the given arc XRI, or null.
 	 */
 	public ReadOnlyIterator<Relation> getRelations(XDI3Segment arcXri);
 
 	/**
+	 * Deep version of ContextNode.ContextNode.getRelations(XDI3Segment), operates at a context node further down in the graph.
+	 */
+	public ReadOnlyIterator<Relation> getDeepRelations(XDI3Segment contextNodeArcXris, XDI3Segment arcXri);
+
+	/**
 	 * Returns the relations of this context node.
 	 * @return An iterator over relations.
 	 */
 	public ReadOnlyIterator<Relation> getRelations();
+
+	/**
+	 * Deep version of ContextNode.ContextNode.getRelations(), operates at a context node further down in the graph.
+	 */
+	public ReadOnlyIterator<Relation> getDeepRelations(XDI3Segment contextNodeArcXris);
 
 	/**
 	 * Returns the incoming relations with a given arc XRI.
@@ -253,31 +321,6 @@ public interface ContextNode extends Serializable, Comparable<ContextNode> {
 	public boolean containsRelations();
 
 	/**
-	 * Finds a relation at any depth under this context node.
-	 * @param xri The relation XRI of the context node containing the relation.
-	 * @param arcXri The arc XRI of the relation.
-	 * @param targetContextNodeXri The target context node XRI of the relation.
-	 * @return A relation or null.
-	 */
-	public Relation findRelation(XDI3Segment xri, XDI3Segment arcXri, XDI3Segment targetContextNodeXri);
-
-	/**
-	 * Finds a relation at any depth under this context node.
-	 * @param xri The relation XRI of the context node containing the relation.
-	 * @param arcXri The arc XRI of the relation.
-	 * @return A relation or null.
-	 */
-	public Relation findRelation(XDI3Segment xri, XDI3Segment arcXri);
-
-	/**
-	 * Finds relations at any depth under this context node.
-	 * @param xri The relative XRI of the context node containing the relations.
-	 * @param arcXri The arc XRI of the relations.
-	 * @return An iterator over relations.
-	 */
-	public ReadOnlyIterator<Relation> findRelations(XDI3Segment xri, XDI3Segment arcXri);
-
-	/**
 	 * Deletes the relation with a given arc XRI from this context node.
 	 * @param arcXri The arc XRI of the relation.
 	 * @param targetContextNodeXri The target context node XRI of the relation.
@@ -294,6 +337,11 @@ public interface ContextNode extends Serializable, Comparable<ContextNode> {
 	 * Deletes all relations from this context node.
 	 */
 	public void deleteRelations();
+
+	/**
+	 * Deletes the incoming relations of this context node.
+	 */
+	public void deleteIncomingRelations();
 
 	/**
 	 * Returns the number of relations of this context node.
@@ -326,6 +374,23 @@ public interface ContextNode extends Serializable, Comparable<ContextNode> {
 	public Literal createLiteral(String literalData);
 
 	/**
+	 * Deep version of ContextNode.ContextNode.createLiteral(String), operates at a context node further down in the graph.
+	 */
+	public Literal createDeepLiteral(XDI3Segment contextNodeArcXris, String literalData);
+
+	/**
+	 * Creates a new literal and adds it to this context node, or returns an existing literal.
+	 * @param literalData The data of the literal.
+	 * @return The newly created or existing literal.
+	 */
+	public Literal setLiteral(String literalData);
+
+	/**
+	 * Deep version of ContextNode.ContextNode.setLiteral(String), operates at a context node further down in the graph.
+	 */
+	public Literal setDeepLiteral(XDI3Segment contextNodeArcXris, String literalData);
+
+	/**
 	 * Returns the literal of this context node.
 	 * @param literalData The data of the literal.
 	 * @return The literal.
@@ -333,10 +398,20 @@ public interface ContextNode extends Serializable, Comparable<ContextNode> {
 	public Literal getLiteral(String literalData);
 
 	/**
+	 * Deep version of ContextNode.ContextNode.getLiteral(String), operates at a context node further down in the graph.
+	 */
+	public Literal getDeepLiteral(XDI3Segment contextNodeArcXris, String literalData);
+
+	/**
 	 * Returns the literal of this context node.
 	 * @return The literal.
 	 */
 	public Literal getLiteral();
+
+	/**
+	 * Deep version of ContextNode.ContextNode.getLiteral(), operates at a context node further down in the graph.
+	 */
+	public Literal getDeepLiteral(XDI3Segment contextNodeArcXris);
 
 	/**
 	 * Returns all literals of this context node.
@@ -356,20 +431,6 @@ public interface ContextNode extends Serializable, Comparable<ContextNode> {
 	 * @return True if this context node has a literal.
 	 */
 	public boolean containsLiteral();
-
-	/**
-	 * Finds a literal at any depth under this context node.
-	 * @param xri The relative XRI of the context node containing the literal.
-	 * @return The literal or null.
-	 */
-	public Literal findLiteral(XDI3Segment xri, String literalData);
-
-	/**
-	 * Finds a literal at any depth under this context node.
-	 * @param xri The relative XRI of the context node containing the literal.
-	 * @return The literal or null.
-	 */
-	public Literal findLiteral(XDI3Segment xri);
 
 	/**
 	 * Deletes the literal from this context node.

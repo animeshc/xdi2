@@ -26,7 +26,7 @@ public abstract class AbstractGraphMessagingTargetTest extends TestCase {
 
 	private static final XDIReader autoReader = XDIReaderRegistry.getAuto();
 
-	protected abstract Graph openNewGraph(String id) throws IOException;
+	protected abstract Graph openNewGraph(String identifier) throws IOException;
 
 	public void testMessageEnvelope() throws Exception {
 
@@ -37,12 +37,12 @@ public abstract class AbstractGraphMessagingTargetTest extends TestCase {
 		MessageEnvelope messageEnvelope1 = MessageEnvelope.fromOperationXriAndTargetStatements(XDIMessagingConstants.XRI_S_ADD, new SingleItemIterator<XDI3Statement> (XDI3Statement.create("=markus/+friend/=giovanni")));
 		MessageResult messageResult1 = new MessageResult();
 		graphMessagingTarget.execute(messageEnvelope1, messageResult1, null);
-		assertEquals(graph.findRelation(XDI3Segment.create("=markus"), XDI3Segment.create("+friend")).getTargetContextNodeXri(), XDI3Segment.create("=giovanni"));
+		assertEquals(graph.getDeepRelation(XDI3Segment.create("=markus"), XDI3Segment.create("+friend")).getTargetContextNodeXri(), XDI3Segment.create("=giovanni"));
 
 		MessageEnvelope messageEnvelope2 = MessageEnvelope.fromOperationXriAndTargetAddress(XDIMessagingConstants.XRI_S_GET, XDI3Segment.create("=markus"));
 		MessageResult messageResult2 = new MessageResult();
 		graphMessagingTarget.execute(messageEnvelope2, messageResult2, null);
-		assertEquals(messageResult2.getGraph().findRelation(XDI3Segment.create("=markus"), XDI3Segment.create("+friend")).getTargetContextNodeXri(), XDI3Segment.create("=giovanni"));
+		assertEquals(messageResult2.getGraph().getDeepRelation(XDI3Segment.create("=markus"), XDI3Segment.create("+friend")).getTargetContextNodeXri(), XDI3Segment.create("=giovanni"));
 	}
 
 	public void testGraphMessagingTarget() throws Exception {
@@ -78,7 +78,13 @@ public abstract class AbstractGraphMessagingTargetTest extends TestCase {
 				MessageEnvelope messageEnvelope = MessageEnvelope.fromGraph(message);
 				MessageResult messageResult = new MessageResult();
 
-				graphMessagingTarget.execute(messageEnvelope, messageResult, null);
+				try {
+
+					graphMessagingTarget.execute(messageEnvelope, messageResult, null);
+				} catch (Exception ex) {
+
+					throw ex;
+				}
 
 				ii++;
 			}
@@ -90,7 +96,7 @@ public abstract class AbstractGraphMessagingTargetTest extends TestCase {
 			while (true) {
 
 				if (this.getClass().getResourceAsStream("positive" + i + "." + ii + ".xdi") == null) break;
-				
+
 				log.info("Positive " + i + "." + ii);
 
 				Graph positive = this.openNewGraph(this.getClass().getName() + "-positive-" + i + "-" + ii); 

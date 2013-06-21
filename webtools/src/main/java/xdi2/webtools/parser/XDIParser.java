@@ -1,9 +1,13 @@
 package xdi2.webtools.parser;
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map.Entry;
@@ -15,6 +19,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import xdi2.core.ContextNode;
+import xdi2.core.Graph;
+import xdi2.core.features.nodetypes.XdiAbstractContext;
+import xdi2.core.features.nodetypes.XdiContext;
+import xdi2.core.impl.memory.MemoryGraphFactory;
+import xdi2.core.xri3.XDI3Segment;
+import xdi2.core.xri3.XDI3Statement;
 
 import com.coasttocoastresearch.apg.Parser.Result;
 import com.coasttocoastresearch.apg.Statistics;
@@ -72,6 +84,7 @@ public class XDIParser extends javax.servlet.http.HttpServlet implements javax.s
 		request.setAttribute("rulename", "xdi-statement");
 		request.setAttribute("parser", "aparse");
 		request.setAttribute("input", sampleInput);
+
 		request.getRequestDispatcher("/XDIParser.jsp").forward(request, response);
 	}
 
@@ -88,6 +101,7 @@ public class XDIParser extends javax.servlet.http.HttpServlet implements javax.s
 		String output5 = "";
 		String output6 = "";
 		String output7 = "";
+		String output8 = "";
 		String error = null;
 
 		try {
@@ -99,6 +113,7 @@ public class XDIParser extends javax.servlet.http.HttpServlet implements javax.s
 			ByteArrayOutputStream buffer5 = new ByteArrayOutputStream();
 			ByteArrayOutputStream buffer6 = new ByteArrayOutputStream();
 			ByteArrayOutputStream buffer7 = new ByteArrayOutputStream();
+			ByteArrayOutputStream buffer8 = new ByteArrayOutputStream();
 			PrintStream stream1 = new PrintStream(buffer1);
 			PrintStream stream2 = new PrintStream(buffer2);
 			PrintStream stream3 = new PrintStream(buffer3);
@@ -106,6 +121,7 @@ public class XDIParser extends javax.servlet.http.HttpServlet implements javax.s
 			PrintStream stream5 = new PrintStream(buffer5);
 			PrintStream stream6 = new PrintStream(buffer6);
 			PrintStream stream7 = new PrintStream(buffer7);
+			PrintStream stream8 = new PrintStream(buffer8);
 
 			if ("aparse".equals(parser)) {
 
@@ -186,6 +202,52 @@ public class XDIParser extends javax.servlet.http.HttpServlet implements javax.s
 				output6 = html(new String(buffer6.toByteArray(), "UTF-8"));
 
 				output7 = html(new String(buffer7.toByteArray(), "UTF-8"));
+			} else if ("manual".equals(parser)) {
+
+				XDI3Segment segment;
+
+				try {
+
+					XDI3Statement statement = XDI3Statement.create(input);
+					segment = statement.getSubject();
+				} catch (Exception ex) {
+
+					segment = XDI3Segment.create(input);
+				}
+
+				Graph tempGraph = MemoryGraphFactory.getInstance().openGraph();
+				List<ContextNode> contextNodes = new ArrayList<ContextNode> ();
+
+				for (ContextNode contextNode = tempGraph.createDeepContextNode(segment); contextNode != null; contextNode = contextNode.getContextNode()) {
+
+					contextNodes.add(contextNode);
+				}
+
+				Collections.reverse(contextNodes);
+
+				for (ContextNode contextNode : contextNodes) {
+
+					XdiContext xdiContext = XdiAbstractContext.fromContextNode(contextNode);
+					Class<?> clazz = xdiContext.getClass();
+
+					stream8.print("<b>" + contextNode.getArcXri() + "</b>" + ": ");
+
+					stream8.print(clazz.getSimpleName() + " ");
+
+					List<Class<?>> interfazes = interfazes(clazz);
+					Collections.reverse(interfazes);
+
+					for (Class<?> interfaze : interfazes) {
+
+						if (! interfaze.getCanonicalName().startsWith("xdi2.core.features.nodetypes.")) continue;
+
+						stream8.print("(" + interfaze.getSimpleName() + ")");
+					}
+
+					stream8.println();
+				}
+
+				output8 = html(new String(buffer8.toByteArray(), "UTF-8"));
 			}
 		} catch (Exception ex) {
 
@@ -207,13 +269,26 @@ public class XDIParser extends javax.servlet.http.HttpServlet implements javax.s
 		request.setAttribute("output5", output5);
 		request.setAttribute("output6", output6);
 		request.setAttribute("output7", output7);
+		request.setAttribute("output8", output8);
 		request.setAttribute("error", error);
 
 		request.getRequestDispatcher("/XDIParser.jsp").forward(request, response);
 	}
 
+	private static List<Class<?>> interfazes(Class<?> clazz) {
+
+		if (! clazz.getCanonicalName().startsWith("xdi2.core.features.nodetypes.")) return Collections.emptyList();
+
+		List<Class<?>> list = new ArrayList<Class<?>> ();
+
+		list.addAll(Arrays.asList(clazz.getInterfaces()));
+		list.addAll(interfazes(clazz.getSuperclass()));
+
+		return list;
+	}
+
 	private static String html(String string) {
 
-		return string.replace("<", "&lt;").replace(">", "&gt;");
+		return string.replace("<", "&lt;").replace(">", "&gt;").replace("&lt;b&gt;", "<b>").replace("&lt;/b&gt;", "</b>");
 	}
 }

@@ -3,7 +3,7 @@ package xdi2.core.features.nodetypes;
 import xdi2.core.ContextNode;
 import xdi2.core.xri3.XDI3SubSegment;
 
-public abstract class XdiAbstractSingleton extends XdiAbstractSubGraph {
+public abstract class XdiAbstractSingleton extends XdiAbstractSubGraph implements XdiSingleton {
 
 	private static final long serialVersionUID = -1976646316893343570L;
 
@@ -24,9 +24,7 @@ public abstract class XdiAbstractSingleton extends XdiAbstractSubGraph {
 	public static boolean isValid(ContextNode contextNode) {
 
 		return XdiEntitySingleton.isValid(contextNode) || 
-				XdiAttributeSingleton.isValid(contextNode) ||
-				XdiPersonalSingleton.isValid(contextNode) ||
-				XdiOrganizationalSingleton.isValid(contextNode);
+				XdiAttributeSingleton.isValid(contextNode);
 	}
 
 	/**
@@ -34,14 +32,12 @@ public abstract class XdiAbstractSingleton extends XdiAbstractSubGraph {
 	 * @param contextNode The context node that is an XDI singleton.
 	 * @return The XDI singleton.
 	 */
-	public static XdiAbstractSingleton fromContextNode(ContextNode contextNode) {
+	public static XdiSingleton fromContextNode(ContextNode contextNode) {
 
-		XdiAbstractSingleton xdiSingleton;
+		XdiSingleton xdiSingleton;
 
 		if ((xdiSingleton = XdiEntitySingleton.fromContextNode(contextNode)) != null) return xdiSingleton;
 		if ((xdiSingleton = XdiAttributeSingleton.fromContextNode(contextNode)) != null) return xdiSingleton;
-		if ((xdiSingleton = XdiPersonalSingleton.fromContextNode(contextNode)) != null) return xdiSingleton;
-		if ((xdiSingleton = XdiOrganizationalSingleton.fromContextNode(contextNode)) != null) return xdiSingleton;
 
 		return null;
 	}
@@ -53,8 +49,6 @@ public abstract class XdiAbstractSingleton extends XdiAbstractSubGraph {
 	public static boolean isValidArcXri(XDI3SubSegment arcXri) {
 
 		return XdiEntitySingleton.isValidArcXri(arcXri) || 
-				XdiAttributeSingleton.isValidArcXri(arcXri) ||
-				XdiPersonalSingleton.isValidArcXri(arcXri) ||
-				XdiOrganizationalSingleton.isValidArcXri(arcXri);
+				XdiAttributeSingleton.isValidArcXri(arcXri);
 	}
 }

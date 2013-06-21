@@ -9,16 +9,14 @@ import org.slf4j.LoggerFactory;
 
 import xdi2.core.ContextNode;
 import xdi2.core.features.nodetypes.XdiAbstractInstanceUnordered.MappingContextNodeXdiInstanceUnorderedIterator;
-import xdi2.core.util.XDI3Util;
 import xdi2.core.util.iterators.CastingIterator;
 import xdi2.core.util.iterators.CompositeIterator;
 import xdi2.core.util.iterators.IteratorCounter;
-import xdi2.core.util.iterators.MappingEquivalenceXdiSubGraphIterator;
+import xdi2.core.util.iterators.MappingEquivalenceXdiContextIterator;
 import xdi2.core.util.iterators.MappingIterator;
 import xdi2.core.util.iterators.NoDuplicatesIterator;
 import xdi2.core.util.iterators.NotNullIterator;
 import xdi2.core.util.iterators.ReadOnlyIterator;
-import xdi2.core.xri3.XDI3Constants;
 import xdi2.core.xri3.XDI3SubSegment;
 
 public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends XdiInstanceOrdered, I extends XdiInstance> extends XdiAbstractSubGraph implements XdiClass<U, O, I> {
@@ -91,12 +89,12 @@ public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends
 	@Override
 	public U setXdiInstanceUnordered(XDI3SubSegment arcXri) {
 
-		if (arcXri == null) arcXri = XDI3Util.randomUuidSubSegment(XDI3Constants.CS_BANG);
-		
+		if (arcXri == null) arcXri = XdiAbstractInstanceUnordered.createArcXriFromRandom(false);
+
 		ContextNode instanceContextNode = this.getContextNode().getContextNode(arcXri);
 		if (instanceContextNode == null) instanceContextNode = this.getContextNode().createContextNode(arcXri);
 
-		return XdiAbstractSubGraph.fromContextNode(instanceContextNode, this.getU());
+		return XdiAbstractContext.fromContextNode(instanceContextNode, this.getU());
 	}
 
 	/**
@@ -109,7 +107,7 @@ public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends
 		ContextNode instanceContextNode = this.getContextNode().getContextNode(arcXri);
 		if (instanceContextNode == null) return null;
 
-		return XdiAbstractSubGraph.fromContextNode(instanceContextNode, this.getU());
+		return XdiAbstractContext.fromContextNode(instanceContextNode, this.getU());
 	}
 
 	/**
@@ -138,12 +136,14 @@ public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends
 	@Override
 	public O setXdiInstanceOrdered(int index) {
 
+		if (index < 0) index = this.getXdiInstancesOrderedCount();
+
 		XDI3SubSegment arcXri = XdiAbstractInstanceOrdered.createArcXri(Integer.toString(index));
 
 		ContextNode contextNode = this.getContextNode().getContextNode(arcXri);
 		if (contextNode == null) contextNode = this.getContextNode().createContextNode(arcXri);
 
-		return XdiAbstractSubGraph.fromContextNode(contextNode, this.getO());
+		return XdiAbstractContext.fromContextNode(contextNode, this.getO());
 	}
 
 	/**
@@ -158,7 +158,7 @@ public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends
 		ContextNode contextNode = this.getContextNode().getContextNode(arcXri);
 		if (contextNode == null) return null;
 
-		return XdiAbstractSubGraph.fromContextNode(contextNode, this.getO());
+		return XdiAbstractContext.fromContextNode(contextNode, this.getO());
 	}
 
 	/**
@@ -195,7 +195,7 @@ public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends
 
 		if (deref) {
 
-			iterator = new CastingIterator<XdiSubGraph, I> (new MappingEquivalenceXdiSubGraphIterator(iterator));
+			iterator = new CastingIterator<XdiContext, I> (new MappingEquivalenceXdiContextIterator(iterator));
 			iterator = new NoDuplicatesIterator<I> (iterator);
 		}
 
@@ -246,7 +246,7 @@ public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends
 
 	public class XdiInstancesOrderedIterator extends ReadOnlyIterator<O> {
 
-		private int index = 1;
+		private int index = 0;
 		private O nextXdiElement = null;
 		private boolean triedNextXdiElement = false;
 
@@ -280,7 +280,7 @@ public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends
 
 			this.nextXdiElement = XdiAbstractClass.this.getXdiInstanceOrdered(this.index);
 
-			if (log.isDebugEnabled()) log.debug("Next element at index " + this.index + ": " + this.nextXdiElement);
+			if (log.isTraceEnabled()) log.trace("Next element at index " + this.index + ": " + this.nextXdiElement);
 
 			this.triedNextXdiElement = true;
 		}

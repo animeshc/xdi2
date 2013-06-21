@@ -68,11 +68,11 @@ public final class CopyUtil {
 		} else {
 
 			XDI3Segment parentContextNodeXri = contextNode.getContextNode().getXri();
-			ContextNode targetParentContextNode = targetGraph.findContextNode(parentContextNodeXri, true);
+			ContextNode targetParentContextNode = targetGraph.setDeepContextNode(parentContextNodeXri);
 			targetContextNode = targetParentContextNode.createContextNode(contextNode.getArcXri());
 		}
 
-		CopyUtil.copyContextNodeContents(contextNode, targetContextNode, copyStrategy);
+		copyContextNodeContents(contextNode, targetContextNode, copyStrategy);
 
 		return targetContextNode;
 	}
@@ -95,7 +95,7 @@ public final class CopyUtil {
 		ContextNode targetInnerContextNode = targetContextNode.getContextNode(contextNode.getArcXri());
 		if (targetInnerContextNode == null) targetInnerContextNode = targetContextNode.createContextNode(contextNode.getArcXri());
 
-		CopyUtil.copyContextNodeContents(contextNode, targetInnerContextNode, copyStrategy);
+		copyContextNodeContents(contextNode, targetInnerContextNode, copyStrategy);
 
 		return targetContextNode;
 	}
@@ -114,7 +114,7 @@ public final class CopyUtil {
 		if (copyStrategy == null) copyStrategy = allCopyStrategy;
 
 		XDI3Segment contextNodeXri = relation.getContextNode().getXri();
-		ContextNode targetContextNode = targetGraph.findContextNode(contextNodeXri, true);
+		ContextNode targetContextNode = targetGraph.setDeepContextNode(contextNodeXri);
 
 		return copyRelation(relation, targetContextNode, copyStrategy);
 	}
@@ -154,7 +154,7 @@ public final class CopyUtil {
 		if (copyStrategy == null) copyStrategy = allCopyStrategy;
 
 		XDI3Segment contextNodeXri = literal.getContextNode().getXri();
-		ContextNode targetContextNode = targetGraph.findContextNode(contextNodeXri, true);
+		ContextNode targetContextNode = targetGraph.setDeepContextNode(contextNodeXri);
 
 		return copyLiteral(literal, targetContextNode, copyStrategy);
 	}
@@ -179,6 +179,26 @@ public final class CopyUtil {
 		if (targetLiteral == null) targetLiteral = targetContextNode.createLiteral(literal.getLiteralData());
 
 		return targetLiteral;
+	}
+
+	/**
+	 * Copies a statement into another graph.
+	 * @param statement A statement from any graph.
+	 * @param targetGraph The target graph.
+	 * @param copyStrategy The strategy to determine what to copy.
+	 * @return The copied statement in the target graph.
+	 */
+	public static Statement copyStatement(Statement statement, Graph targetGraph, CopyStrategy copyStrategy) {
+
+		if (statement == null) throw new NullPointerException();
+		if (targetGraph == null) throw new NullPointerException();
+		if (copyStrategy == null) copyStrategy = allCopyStrategy;
+
+		if (statement instanceof ContextNodeStatement) return copyContextNode(((ContextNodeStatement) statement).getContextNode(), targetGraph, null).getStatement();
+		if (statement instanceof RelationStatement) return copyRelation(((RelationStatement) statement).getRelation(), targetGraph, null).getStatement();
+		if (statement instanceof LiteralStatement) return copyLiteral(((LiteralStatement) statement).getLiteral(), targetGraph, null).getStatement();
+
+		return null;
 	}
 
 	/**
@@ -261,26 +281,6 @@ public final class CopyUtil {
 		if (literal == null) return null;
 
 		return copyLiteral(literal, targetContextNode, copyStrategy);
-	}
-
-	/**
-	 * Copies a literal of a context node into a target context node.
-	 * @param contextNode A context node from any graph.
-	 * @param targetContextNode The target context node.
-	 * @param copyStrategy The strategy to determine what to copy.
-	 * @return The copied literal in the target graph.
-	 */
-	public static Statement copyStatement(Statement statement, Graph targetGraph, CopyStrategy copyStrategy) {
-
-		if (statement == null) throw new NullPointerException();
-		if (targetGraph == null) throw new NullPointerException();
-		if (copyStrategy == null) copyStrategy = allCopyStrategy;
-
-		if (statement instanceof ContextNodeStatement) return copyContextNode(((ContextNodeStatement) statement).getContextNode(), targetGraph, null).getStatement();
-		if (statement instanceof RelationStatement) return copyRelation(((RelationStatement) statement).getRelation(), targetGraph, null).getStatement();
-		if (statement instanceof LiteralStatement) return copyLiteral(((LiteralStatement) statement).getLiteral(), targetGraph, null).getStatement();
-
-		return null;
 	}
 
 	/**

@@ -30,11 +30,11 @@ import xdi2.core.io.writers.XDIDisplayWriter;
 import xdi2.messaging.MessageEnvelope;
 import xdi2.messaging.MessageResult;
 import xdi2.messaging.target.impl.graph.GraphMessagingTarget;
-import xdi2.messaging.target.interceptor.impl.LinkContractInterceptor;
 import xdi2.messaging.target.interceptor.impl.MessagePolicyInterceptor;
 import xdi2.messaging.target.interceptor.impl.RefInterceptor;
 import xdi2.messaging.target.interceptor.impl.ToInterceptor;
 import xdi2.messaging.target.interceptor.impl.VariablesInterceptor;
+import xdi2.messaging.target.interceptor.impl.linkcontract.LinkContractInterceptor;
 
 /**
  * Servlet implementation class for Servlet: XDILocalMessenger
@@ -146,6 +146,10 @@ public class XDILocalMessenger extends javax.servlet.http.HttpServlet implements
 		String sample = request.getParameter("sample");
 		if (sample == null) sample = "1";
 
+		request.setAttribute("sampleCategories", sampleCategories);
+		request.setAttribute("sampleInputs", sampleInputs);
+		request.setAttribute("sampleMessages", sampleMessages);
+		request.setAttribute("sampleTooltips", sampleTooltips);
 		request.setAttribute("category", category);
 		request.setAttribute("sample", sample);
 		request.setAttribute("resultFormat", XDIDisplayWriter.FORMAT_NAME);
@@ -156,12 +160,9 @@ public class XDILocalMessenger extends javax.servlet.http.HttpServlet implements
 		request.setAttribute("variablesSupport", "on");
 		request.setAttribute("dollarRefSupport", "on");
 		request.setAttribute("linkContractsSupport", null);
-		request.setAttribute("sampleCategories", sampleCategories);
-		request.setAttribute("sampleInputs", sampleInputs);
-		request.setAttribute("sampleMessages", sampleMessages);
-		request.setAttribute("sampleTooltips", sampleTooltips);
 		request.setAttribute("input", sampleInputs.get(Integer.parseInt(category) - 1).get(Integer.parseInt(sample) - 1));
 		request.setAttribute("message", sampleMessages.get(Integer.parseInt(category) - 1).get(Integer.parseInt(sample) - 1));
+
 		request.getRequestDispatcher("/XDILocalMessenger.jsp").forward(request, response);
 	}
 
@@ -296,12 +297,12 @@ public class XDILocalMessenger extends javax.servlet.http.HttpServlet implements
 
 		// display results
 
-		request.setAttribute("category", category);
-		request.setAttribute("sample", sample);
 		request.setAttribute("sampleCategories", sampleCategories);
 		request.setAttribute("sampleInputs", sampleInputs);
 		request.setAttribute("sampleMessages", sampleMessages);
 		request.setAttribute("sampleTooltips", sampleTooltips);
+		request.setAttribute("category", category);
+		request.setAttribute("sample", sample);
 		request.setAttribute("resultFormat", resultFormat);
 		request.setAttribute("writeImplied", writeImplied);
 		request.setAttribute("writeOrdered", writeOrdered);

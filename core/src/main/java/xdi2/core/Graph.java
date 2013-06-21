@@ -12,7 +12,7 @@ import xdi2.core.xri3.XDI3Statement;
 /**
  * This interface represents a whole XDI graph.
  * XDI graphs consist of context nodes, relations, and literals.
- * Also, XDI graphs can be expressed a set of XDI statements.
+ * Also, an XDI graph can be expressed as a set of XDI statements.
  * 
  * @author markus
  */
@@ -51,94 +51,7 @@ public interface Graph extends Serializable, Comparable<Graph>, Closeable {
 	 * This is equivalent to calling getRootContextNode().isEmpty();
 	 */
 	public boolean isEmpty();
-
-	/**
-	 * Finds a context node at any depth in this graph.
-	 * @param contextNodeXri The XRI of the context node.
-	 * @param create Whether or not to create context nodes if they don't exist.
-	 * @return A context node or null
-	 */
-	public ContextNode findContextNode(XDI3Segment contextNodeXri, boolean create);
-
-	/**
-	 * Finds a relation at any depth in this graph.
-	 * @param contextNodeXri The relation XRI of the context node containing the relation.
-	 * @param arcXri The arc XRI of the relation.
-	 * @param targetContextNodeXri The target context node XRI of the relation.
-	 * @return A relation or null.
-	 */
-	public Relation findRelation(XDI3Segment contextNodeXri, XDI3Segment arcXri, XDI3Segment targetContextNodeXri);
-
-	/**
-	 * Finds a relation at any depth in this graph.
-	 * @param contextNodeXri The XRI of the context node containing the relation.
-	 * @param arcXri The arc XRI of the relation.
-	 * @return A relation or null.
-	 */
-	public Relation findRelation(XDI3Segment contextNodeXri, XDI3Segment arcXri);
-
-	/**
-	 * Finds relations at any depth in this graph.
-	 * @param contextNodeXri The XRI of the context node containing the relations.
-	 * @param arcXri The arc XRI of the relations.
-	 * @return An iterator over relations.
-	 */
-	public ReadOnlyIterator<Relation> findRelations(XDI3Segment contextNodeXri, XDI3Segment arcXri);
-
-	/**
-	 * Finds a literal at any depth in this graph.
-	 * @param contextNodeXri The XRI of the context node containing the literal.
-	 * @param literalData The data of the literal.
-	 * @return A literal or null.
-	 */
-	public Literal findLiteral(XDI3Segment contextNodeXri, String literalData);
-
-	/**
-	 * Finds a literal at any depth in this graph.
-	 * @param contextNodeXri The XRI of the context node containing the literal.
-	 * @return A literal or null.
-	 */
-	public Literal findLiteral(XDI3Segment contextNodeXri);
-
-	/**
-	 * Checks if a context node exists in this graph.
-	 * @param contextNodeXri The XRI of the context node.
-	 * @return True, if the context node exists.
-	 */
-	public boolean containsContextNode(XDI3Segment contextNodeXri);
-
-	/**
-	 * Checks if relations exists in this graph.
-	 * @param contextNodeXri The XRI of the context node containing the relation.
-	 * @param arcXri The arc XRI of the relation.
-	 * @param targetContextNodeXri The target context node XRI of the relation.
-	 * @return True, if the relation exists.
-	 */
-	public boolean containsRelation(XDI3Segment contextNodeXri, XDI3Segment arcXri, XDI3Segment targetContextNodeXri);
-
-	/**
-	 * Checks if relations exists in this graph.
-	 * @param contextNodeXri The XRI of the context node containing the relation.
-	 * @param arcXri The arc XRI of the relation.
-	 * @return True, if the relation exists.
-	 */
-	public boolean containsRelations(XDI3Segment contextNodeXri, XDI3Segment arcXri);
-
-	/**
-	 * Checks if a literal exists in this graph.
-	 * @param contextNodeXri The XRI of the context node containing the literal.
-	 * @param literalData The data of the literal.
-	 * @return True, if the literal exists.
-	 */
-	public boolean containsLiteral(XDI3Segment contextNodeXri, String literalData);
-
-	/**
-	 * Checks if a literal exists in this graph.
-	 * @param contextNodeXri The XRI of the context node containing the literal.
-	 * @return True, if the literal exists.
-	 */
-	public boolean containsLiteral(XDI3Segment contextNodeXri);
-
+	
 	/**
 	 * Converts the graph to a string in the given serialization format.
 	 * @param format The serialization format.
@@ -153,6 +66,91 @@ public interface Graph extends Serializable, Comparable<Graph>, Closeable {
 	public String toString(MimeType mimeType);
 
 	/*
+	 * Deep methods
+	 */
+
+	/**
+	 * Deep version of ContextNode.createContextNode(XDI3SubSegment), operates at a context node further down in the graph.
+	 */
+	public ContextNode createDeepContextNode(XDI3Segment contextNodeArcXris);
+
+	/**
+	 * Deep version of ContextNode.setContextNode(XDI3SubSegment), operates at a context node further down in the graph.
+	 */
+	public ContextNode setDeepContextNode(XDI3Segment contextNodeArcXris);
+
+	/**
+	 * Deep version of ContextNode.getContextNode(XDI3SubSegment), operates at a context node further down in the graph.
+	 */
+	public ContextNode getDeepContextNode(XDI3Segment contextNodeArcXris);
+
+	/**
+	 * Deep version of ContextNode.getContextNodes(), operates at a context node further down in the graph.
+	 */
+	public ReadOnlyIterator<ContextNode> getDeepContextNodes(XDI3Segment contextNodeArcXris);
+
+	/**
+	 * Deep version of ContextNode.createRelation(XDI3Segment, XDI3Segment), operates at a context node further down in the graph.
+	 */
+	public Relation createDeepRelation(XDI3Segment contextNodeArcXris, XDI3Segment arcXri, XDI3Segment targetContextNodeXri);
+
+	/**
+	 * Deep version of ContextNode.createRelation(XDI3Segment, ContextNode), operates at a context node further down in the graph.
+	 */
+	public Relation createDeepRelation(XDI3Segment contextNodeArcXris, XDI3Segment arcXri, ContextNode targetContextNode);
+
+	/**
+	 * Deep version of ContextNode.setRelation(XDI3Segment, XDI3Segment), operates at a context node further down in the graph.
+	 */
+	public Relation setDeepRelation(XDI3Segment contextNodeArcXris, XDI3Segment arcXri, XDI3Segment targetContextNodeXri);
+
+	/**
+	 * Deep version of ContextNode.setRelation(XDI3Segment, ContextNode), operates at a context node further down in the graph.
+	 */
+	public Relation setDeepRelation(XDI3Segment contextNodeArcXris, XDI3Segment arcXri, ContextNode targetContextNode);
+
+	/**
+	 * Deep version of ContextNode.getRelation(XDI3Segment, XDI3Segment), operates at a context node further down in the graph.
+	 */
+	public Relation getDeepRelation(XDI3Segment contextNodeArcXris, XDI3Segment arcXri, XDI3Segment targetContextNodeXri);
+
+	/**
+	 * Deep version of ContextNode.getRelation(XDI3Segment), operates at a context node further down in the graph.
+	 */
+	public Relation getDeepRelation(XDI3Segment contextNodeArcXris, XDI3Segment arcXri);
+
+	/**
+	 * Deep version of ContextNode.getRelations(XDI3Segment), operates at a context node further down in the graph.
+	 */
+	public ReadOnlyIterator<Relation> getDeepRelations(XDI3Segment contextNodeArcXris, XDI3Segment arcXri);
+
+	/**
+	 * Deep version of ContextNode.getRelations(), operates at a context node further down in the graph.
+	 */
+	public ReadOnlyIterator<Relation> getDeepRelations(XDI3Segment contextNodeArcXris);
+
+	/**
+	 * Deep version of ContextNode.createLiteral(String), operates at a context node further down in the graph.
+	 */
+	public Literal createDeepLiteral(XDI3Segment contextNodeArcXris, String literalData);
+
+	/**
+	 * Deep version of ContextNode.setLiteral(String), operates at a context node further down in the graph.
+	 */
+	public Literal setDeepLiteral(XDI3Segment contextNodeArcXris, String literalData);
+
+	/**
+	 * Deep version of ContextNode.getLiteral(String), operates at a context node further down in the graph.
+	 * @see ContextNode#getLiteral(String)
+	 */
+	public Literal getDeepLiteral(XDI3Segment contextNodeArcXris, String literalData);
+
+	/**
+	 * Deep version of ContextNode.getLiteral(), operates at a context node further down in the graph.
+	 */
+	public Literal getDeepLiteral(XDI3Segment contextNodeArcXris);
+
+	/*
 	 * Methods related to statements
 	 */
 
@@ -162,9 +160,14 @@ public interface Graph extends Serializable, Comparable<Graph>, Closeable {
 	public Statement createStatement(XDI3Statement statementXri);
 
 	/**
-	 * A simple way to find a statement in this graph.
+	 * A simple way to set a statement in this graph.
 	 */
-	public Statement findStatement(XDI3Statement statementXri);
+	public Statement setStatement(XDI3Statement statementXri);
+
+	/**
+	 * A simple way to get a statement in this graph.
+	 */
+	public Statement getStatement(XDI3Statement statementXri);
 
 	/**
 	 * A simple way to check if a statement exists in this graph.

@@ -7,19 +7,17 @@ import org.slf4j.LoggerFactory;
 
 import xdi2.core.ContextNode;
 import xdi2.core.Graph;
-import xdi2.core.Literal;
 import xdi2.core.constants.XDIConstants;
 import xdi2.core.constants.XDIDictionaryConstants;
 import xdi2.core.constants.XDILinkContractConstants;
-import xdi2.core.constants.XDIPolicyConstants;
 import xdi2.core.features.equivalence.Equivalence;
 import xdi2.core.features.linkcontracts.LinkContract;
 import xdi2.core.features.linkcontracts.LinkContracts;
 import xdi2.core.features.linkcontracts.policy.PolicyAnd;
 import xdi2.core.features.linkcontracts.policy.PolicyUtil;
-import xdi2.core.features.roots.XdiLocalRoot;
-import xdi2.core.features.roots.XdiPeerRoot;
-import xdi2.core.features.roots.XdiPeerRoot.MappingContextNodePeerRootIterator;
+import xdi2.core.features.nodetypes.XdiLocalRoot;
+import xdi2.core.features.nodetypes.XdiPeerRoot;
+import xdi2.core.features.nodetypes.XdiPeerRoot.MappingContextNodePeerRootIterator;
 import xdi2.core.util.iterators.IteratorArrayMaker;
 import xdi2.core.xri3.XDI3Segment;
 import xdi2.messaging.target.MessagingTarget;
@@ -29,7 +27,7 @@ import xdi2.messaging.target.interceptor.MessagingTargetInterceptor;
 
 /**
  * This interceptor can initialize an empty XDI graph with basic bootstrapping data,
- * such as the owner XRI of the graph, a shared secret, and an initial "root link contract".
+ * such as the owner XDI address of the graph, and initial link contracts.
  * 
  * @author markus
  */
@@ -39,7 +37,6 @@ public class BootstrapInterceptor implements MessagingTargetInterceptor, Prototy
 
 	private XDI3Segment bootstrapOwner;
 	private XDI3Segment[] bootstrapOwnerSynonyms;
-	private String bootstrapSharedSecret;
 	private boolean bootstrapLinkContract;
 	private boolean bootstrapPublicLinkContract;
 
@@ -47,7 +44,6 @@ public class BootstrapInterceptor implements MessagingTargetInterceptor, Prototy
 
 		this.bootstrapOwner = null;
 		this.bootstrapOwnerSynonyms = null;
-		this.bootstrapSharedSecret = null;
 		this.bootstrapLinkContract = false;
 		this.bootstrapPublicLinkContract = false;
 	}
@@ -81,18 +77,6 @@ public class BootstrapInterceptor implements MessagingTargetInterceptor, Prototy
 
 		interceptor.setBootstrapOwnerSynonyms(ownerSynonyms);
 
-		// read the shared secret
-
-		String sharedSecret = null;
-
-		if (prototypingContext.getOwnerContextNode() != null) {
-
-			Literal sharedSecretLiteral = prototypingContext.getOwnerContextNode().findLiteral(XDIPolicyConstants.XRI_S_SECRET_TOKEN);
-			sharedSecret = sharedSecretLiteral == null ? null : sharedSecretLiteral.getLiteralData();
-		}
-
-		interceptor.setBootstrapSharedSecret(sharedSecret);
-
 		// done
 
 		return interceptor;
@@ -111,7 +95,7 @@ public class BootstrapInterceptor implements MessagingTargetInterceptor, Prototy
 		Graph graph = graphMessagingTarget.getGraph();
 		ContextNode rootContextNode = graph.getRootContextNode();
 
-		log.debug("bootstrapOwner=" + this.bootstrapOwner + ", bootstrapOwnerSynonyms=" + this.bootstrapOwnerSynonyms + ", bootstrapSharedSecret=" + (this.bootstrapSharedSecret == null ? null : "XXXXX") + ", bootstrapLinkContract=" + this.bootstrapLinkContract + ", bootstrapPublicLinkContract=" + this.bootstrapPublicLinkContract);
+		log.debug("bootstrapOwner=" + this.bootstrapOwner + ", bootstrapOwnerSynonyms=" + this.bootstrapOwnerSynonyms + ", bootstrapLinkContract=" + this.bootstrapLinkContract + ", bootstrapPublicLinkContract=" + this.bootstrapPublicLinkContract);
 
 		// check if the owner statement exists
 
@@ -124,7 +108,7 @@ public class BootstrapInterceptor implements MessagingTargetInterceptor, Prototy
 
 		if (this.bootstrapOwner != null) {
 
-			bootstrapOwnerContextNode = graph.findContextNode(this.bootstrapOwner, true);
+			bootstrapOwnerContextNode = graph.setDeepContextNode(this.bootstrapOwner);
 			bootstrapOwnerSelfPeerRootContextNode = XdiLocalRoot.findLocalRoot(graph).setSelfPeerRoot(this.bootstrapOwner).getContextNode();
 		}
 
@@ -134,41 +118,32 @@ public class BootstrapInterceptor implements MessagingTargetInterceptor, Prototy
 
 			for (XDI3Segment bootstrapOwnerSynonym : this.bootstrapOwnerSynonyms) {
 
-				ContextNode bootstrapOwnerSynonymContextNode = graph.findContextNode(bootstrapOwnerSynonym, true);
-				bootstrapOwnerSynonymContextNode.createRelation(XDIDictionaryConstants.XRI_S_REF, bootstrapOwnerContextNode);
+				graph.setDeepRelation(bootstrapOwnerSynonym, XDIDictionaryConstants.XRI_S_REF, bootstrapOwnerContextNode);
 
 				ContextNode bootstrapOwnerSynonymPeerRootContextNode = XdiLocalRoot.findLocalRoot(graph).findPeerRoot(bootstrapOwnerSynonym, true).getContextNode();
 				bootstrapOwnerSynonymPeerRootContextNode.createRelation(XDIDictionaryConstants.XRI_S_REF, bootstrapOwnerSelfPeerRootContextNode);
 			}
 		}
 
-		// create bootstrap shared secret
-
-		if (this.bootstrapSharedSecret != null) {
-
-			ContextNode bootstrapOwnerSharedSecretContextNode = graph.findContextNode(XDIPolicyConstants.XRI_S_SECRET_TOKEN, true);
-			bootstrapOwnerSharedSecretContextNode.createLiteral(this.bootstrapSharedSecret);
-		}
-
 		// create bootstrap link contract and policy
 
 		if (this.bootstrapLinkContract) {
 
-			bootstrapOwnerContextNode = graph.findContextNode(this.bootstrapOwner, true);
+			bootstrapOwnerContextNode = graph.setDeepContextNode(this.bootstrapOwner);
 
 			LinkContract bootstrapLinkContract = LinkContracts.getLinkContract(rootContextNode, true);
 			bootstrapLinkContract.addPermission(XDILinkContractConstants.XRI_S_ALL, XDIConstants.XRI_S_ROOT);
 
 			PolicyAnd policyAnd = bootstrapLinkContract.getPolicyRoot(true).createAndPolicy(true);
-			PolicyUtil.createSenderMatchesOperator(policyAnd, this.bootstrapOwner);
-			PolicyUtil.createSecretTokenMatchesOperator(policyAnd);
+			PolicyUtil.createSenderIsOperator(policyAnd, this.bootstrapOwner);
+			PolicyUtil.createSecretTokenValidOperator(policyAnd);
 		}
 
 		// create public bootstrap link contract
 
 		if (this.bootstrapPublicLinkContract) {
 
-			ContextNode publicContextNode = graph.findContextNode(XDILinkContractConstants.XRI_S_PUBLIC, true);
+			ContextNode publicContextNode = graph.setDeepContextNode(XDILinkContractConstants.XRI_S_PUBLIC);
 
 			LinkContract bootstrapPublicLinkContract = LinkContracts.getLinkContract(publicContextNode, true);
 			bootstrapPublicLinkContract.addPermission(XDILinkContractConstants.XRI_S_GET, XDILinkContractConstants.XRI_S_PUBLIC);
@@ -208,16 +183,6 @@ public class BootstrapInterceptor implements MessagingTargetInterceptor, Prototy
 
 		this.bootstrapOwnerSynonyms = new XDI3Segment[bootstrapOwnerSynonyms.length];
 		for (int i=0; i<this.bootstrapOwnerSynonyms.length; i++) this.bootstrapOwnerSynonyms[i] = XDI3Segment.create(bootstrapOwnerSynonyms[i]);
-	}
-
-	public String getBootstrapSharedSecret() {
-
-		return this.bootstrapSharedSecret;
-	}
-
-	public void setBootstrapSharedSecret(String bootstrapSharedSecret) {
-
-		this.bootstrapSharedSecret = bootstrapSharedSecret;
 	}
 
 	public boolean getBootstrapLinkContract() {

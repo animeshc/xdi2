@@ -3,7 +3,6 @@ package xdi2.core.impl.keyvalue;
 import java.util.Iterator;
 
 import xdi2.core.ContextNode;
-import xdi2.core.Graph;
 import xdi2.core.Literal;
 import xdi2.core.Relation;
 import xdi2.core.impl.AbstractContextNode;
@@ -23,7 +22,7 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 
 	private XDI3SubSegment arcXri;
 
-	public KeyValueContextNode(Graph graph, ContextNode contextNode, KeyValueStore keyValueStore, String key, XDI3SubSegment arcXri) {
+	public KeyValueContextNode(KeyValueGraph graph, KeyValueContextNode contextNode, KeyValueStore keyValueStore, String key, XDI3SubSegment arcXri) {
 
 		super(graph, contextNode);
 
@@ -58,7 +57,7 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 	@Override
 	public synchronized ContextNode createContextNode(XDI3SubSegment arcXri) {
 
-		this.checkCreateContextNode(arcXri);
+		this.checkContextNode(arcXri, true);
 
 		String contextNodesKey = this.getContextNodesKey();
 		String contextNodeKey = this.getContextNodeKey(arcXri);
@@ -68,7 +67,7 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 		this.keyValueStore.delete(contextNodeKey + "/--R");
 		this.keyValueStore.delete(contextNodeKey + "/--L");
 
-		KeyValueContextNode contextNode = new KeyValueContextNode(this.getGraph(), this, this.keyValueStore, contextNodeKey, arcXri);
+		KeyValueContextNode contextNode = new KeyValueContextNode((KeyValueGraph) this.getGraph(), this, this.keyValueStore, contextNodeKey, arcXri);
 
 		return contextNode;
 	}
@@ -86,7 +85,7 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 				XDI3SubSegment arcXri = XDI3SubSegment.create(item);
 				String contextNodeKey = KeyValueContextNode.this.getContextNodeKey(arcXri);
 
-				return new KeyValueContextNode(KeyValueContextNode.this.getGraph(), KeyValueContextNode.this, KeyValueContextNode.this.keyValueStore, contextNodeKey, arcXri);
+				return new KeyValueContextNode((KeyValueGraph) KeyValueContextNode.this.getGraph(), KeyValueContextNode.this, KeyValueContextNode.this.keyValueStore, contextNodeKey, arcXri);
 			}
 		});
 	}
@@ -98,7 +97,7 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 
 		String contextNodeKey = this.getContextNodeKey(arcXri);
 
-		return new KeyValueContextNode(this.getGraph(), this, this.keyValueStore, contextNodeKey, arcXri);
+		return new KeyValueContextNode((KeyValueGraph) this.getGraph(), this, this.keyValueStore, contextNodeKey, arcXri);
 	}
 
 	@Override
@@ -125,8 +124,7 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 		ContextNode contextNode = this.getContextNode(arcXri);
 		if (contextNode == null) return;
 
-		for (Iterator<Relation> relations = contextNode.getIncomingRelations(); relations.hasNext(); ) 
-			relations.next().delete();
+		for (Iterator<Relation> relations = contextNode.getIncomingRelations(); relations.hasNext(); ) relations.next().delete();
 
 		// delete this context node
 
@@ -166,11 +164,9 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 	@Override
 	public synchronized Relation createRelation(XDI3Segment arcXri, ContextNode targetContextNode) {
 
-		this.checkCreateRelation(arcXri, targetContextNode);
+		this.checkRelation(arcXri, targetContextNode, true);
 
 		XDI3Segment targetContextNodeXri = targetContextNode.getXri();
-
-		this.getGraph().findContextNode(targetContextNodeXri, true);
 
 		String relationsKey = this.getRelationsKey();
 		String relationKey = this.getRelationKey(arcXri);
@@ -178,7 +174,7 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 		this.keyValueStore.put(relationsKey, arcXri.toString());
 		this.keyValueStore.put(relationKey, targetContextNodeXri.toString());
 
-		KeyValueRelation relation = new KeyValueRelation(this.getGraph(), this, this.keyValueStore, relationKey, arcXri, targetContextNodeXri);
+		KeyValueRelation relation = new KeyValueRelation(this, this.keyValueStore, relationKey, arcXri, targetContextNodeXri);
 
 		return relation;
 	}
@@ -192,7 +188,7 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 		if (! this.keyValueStore.contains(relationsKey, arcXri.toString())) return null;
 		if (! this.keyValueStore.contains(relationKey, targetContextNodeXri.toString())) return null;
 
-		return new KeyValueRelation(this.getGraph(), this, this.keyValueStore, relationKey, arcXri, targetContextNodeXri);
+		return new KeyValueRelation(this, this.keyValueStore, relationKey, arcXri, targetContextNodeXri);
 	}
 
 	@Override
@@ -206,7 +202,7 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 
 		XDI3Segment relationXri = XDI3Segment.create(this.keyValueStore.getOne(relationKey));
 
-		return new KeyValueRelation(this.getGraph(), this, this.keyValueStore, relationKey, arcXri, relationXri);
+		return new KeyValueRelation(this, this.keyValueStore, relationKey, arcXri, relationXri);
 	}
 
 	@Override
@@ -225,7 +221,7 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 
 				XDI3Segment relationXri = XDI3Segment.create(relationXriString);
 
-				return new KeyValueRelation(KeyValueContextNode.this.getGraph(), KeyValueContextNode.this, KeyValueContextNode.this.keyValueStore, relationKey, arcXri, relationXri);
+				return new KeyValueRelation(KeyValueContextNode.this, KeyValueContextNode.this.keyValueStore, relationKey, arcXri, relationXri);
 			}
 		});
 	}
@@ -248,7 +244,7 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 					@Override
 					public Relation map(String relationXriString) {
 
-						return new KeyValueRelation(KeyValueContextNode.this.getGraph(), KeyValueContextNode.this, KeyValueContextNode.this.keyValueStore, relationKey, arcXri, XDI3Segment.create(relationXriString));
+						return new KeyValueRelation(KeyValueContextNode.this, KeyValueContextNode.this.keyValueStore, relationKey, arcXri, XDI3Segment.create(relationXriString));
 					}
 				};
 			}
@@ -352,13 +348,13 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 	@Override
 	public synchronized Literal createLiteral(String literalData) {
 
-		this.checkCreateLiteral(literalData);
+		this.checkLiteral(literalData, true);
 
 		String literalKey = this.getLiteralKey();
 
 		this.keyValueStore.put(literalKey, literalData.toString());
 
-		KeyValueLiteral literal = new KeyValueLiteral(this.getGraph(), this, this.keyValueStore, literalKey, literalData);
+		KeyValueLiteral literal = new KeyValueLiteral(this, this.keyValueStore, literalKey, literalData);
 
 		return literal;
 	}
@@ -370,7 +366,7 @@ public class KeyValueContextNode extends AbstractContextNode implements ContextN
 
 		String literalKey = this.getLiteralKey();
 
-		return new KeyValueLiteral(this.getGraph(), this, this.keyValueStore, literalKey, null);
+		return new KeyValueLiteral(this, this.keyValueStore, literalKey, null);
 	}
 
 	@Override

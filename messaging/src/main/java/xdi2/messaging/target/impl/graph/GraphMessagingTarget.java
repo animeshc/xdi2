@@ -3,8 +3,8 @@ package xdi2.messaging.target.impl.graph;
 import java.io.IOException;
 
 import xdi2.core.Graph;
-import xdi2.core.features.roots.XdiLocalRoot;
-import xdi2.core.features.roots.XdiPeerRoot;
+import xdi2.core.features.nodetypes.XdiLocalRoot;
+import xdi2.core.features.nodetypes.XdiPeerRoot;
 import xdi2.core.xri3.XDI3Segment;
 import xdi2.core.xri3.XDI3Statement;
 import xdi2.messaging.MessageEnvelope;
@@ -43,8 +43,6 @@ public class GraphMessagingTarget extends AbstractMessagingTarget implements Pro
 	public void init() throws Exception {
 
 		super.init();
-
-		// read owner
 	}
 
 	@Override

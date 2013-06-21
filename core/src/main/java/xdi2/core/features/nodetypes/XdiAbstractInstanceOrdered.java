@@ -3,9 +3,9 @@ package xdi2.core.features.nodetypes;
 import java.util.Iterator;
 
 import xdi2.core.ContextNode;
+import xdi2.core.constants.XDIConstants;
 import xdi2.core.util.iterators.MappingIterator;
 import xdi2.core.util.iterators.NotNullIterator;
-import xdi2.core.xri3.XDI3Constants;
 import xdi2.core.xri3.XDI3SubSegment;
 
 public abstract class XdiAbstractInstanceOrdered extends XdiAbstractInstance implements XdiInstanceOrdered {
@@ -37,9 +37,9 @@ public abstract class XdiAbstractInstanceOrdered extends XdiAbstractInstance imp
 	 * @param contextNode The context node that is an XDI ordered instance.
 	 * @return The XDI ordered instance.
 	 */
-	public static XdiAbstractInstanceOrdered fromContextNode(ContextNode contextNode) {
+	public static XdiInstanceOrdered fromContextNode(ContextNode contextNode) {
 
-		XdiAbstractInstanceOrdered xdiElement;
+		XdiInstanceOrdered xdiElement;
 
 		if ((xdiElement = XdiEntityInstanceOrdered.fromContextNode(contextNode)) != null) return xdiElement;
 		if ((xdiElement = XdiAttributeInstanceOrdered.fromContextNode(contextNode)) != null) return xdiElement;
@@ -53,18 +53,18 @@ public abstract class XdiAbstractInstanceOrdered extends XdiAbstractInstance imp
 
 	public static XDI3SubSegment createArcXri(String identifier) {
 
-		return XDI3SubSegment.create("" + XDI3Constants.CS_ORDER + identifier);
+		return XDI3SubSegment.create("" + XDIConstants.CS_ORDER + identifier);
 	}
 
 	public static boolean isValidArcXri(XDI3SubSegment arcXri) {
 
 		if (arcXri == null) return false;
 
-		if (arcXri.isSingleton()) return false;
-		if (arcXri.isAttribute()) return false;
+		if (arcXri.isClassXs()) return false;
+		if (arcXri.isAttributeXs()) return false;
 		if (arcXri.hasXRef()) return false;
 
-		if (! XDI3Constants.CS_ORDER.equals(arcXri.getCs())) return false;
+		if (! XDIConstants.CS_ORDER.equals(arcXri.getCs())) return false;
 
 		if (! arcXri.hasLiteral()) return false;
 

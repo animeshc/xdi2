@@ -1,7 +1,6 @@
 package xdi2.core.util;
 
 import java.util.Comparator;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +10,7 @@ import xdi2.core.xri3.XDI3Segment;
 import xdi2.core.xri3.XDI3SubSegment;
 
 /**
- * Various utility methods for working with XRIs.
+ * Various utility methods for working with XRI 3.0 syntax.
  * 
  * @author markus
  */
@@ -20,14 +19,6 @@ public final class XDI3Util {
 	private static final Logger log = LoggerFactory.getLogger(XDI3Util.class);
 
 	private XDI3Util() { }
-
-	/**
-	 * Creates a UUID subsegment
-	 */
-	public static XDI3SubSegment randomUuidSubSegment(Character cs) {
-
-		return XDI3SubSegment.create("" + cs + ".uuid." + UUID.randomUUID().toString());
-	}
 
 	/**
 	 * Checks if an XRI starts with a certain other XRI.
@@ -263,7 +254,7 @@ public final class XDI3Util {
 		if (log.isTraceEnabled()) log.trace("reduceXri(" + xri + "," + base + "," + variablesInXri + "," + variablesInBase + ")");
 
 		if (xri == null) return null;
-		if (base == null) return xri;
+		if (base == null || XDIConstants.XRI_S_ROOT.equals(base)) return xri;
 
 		int xriIndex = 0, baseIndex = 0;
 

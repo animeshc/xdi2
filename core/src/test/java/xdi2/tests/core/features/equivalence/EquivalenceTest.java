@@ -15,7 +15,7 @@ public class EquivalenceTest extends TestCase {
 
 		Graph graph = MemoryGraphFactory.getInstance().openGraph();
 		ContextNode contextNode = graph.getRootContextNode().createContextNode(XDI3SubSegment.create("=markus"));
-		ContextNode identityContextNode = graph.getRootContextNode().createContextNodes(XDI3Segment.create("!1111"));
+		ContextNode identityContextNode = graph.getRootContextNode().createDeepContextNode(XDI3Segment.create("=pseudo"));
 
 		// test $is
 
@@ -34,7 +34,6 @@ public class EquivalenceTest extends TestCase {
 		assertTrue(contextNode.isEmpty());
 		assertTrue(identityContextNode.isEmpty());
 		contextNode.delete();
-		System.out.println(graph);
 		assertTrue(graph.isEmpty());
 	}
 
@@ -42,8 +41,8 @@ public class EquivalenceTest extends TestCase {
 
 		Graph graph = MemoryGraphFactory.getInstance().openGraph();
 		ContextNode contextNode = graph.getRootContextNode().createContextNode(XDI3SubSegment.create("=markus"));
-		ContextNode referenceContextNode = graph.getRootContextNode().createContextNode(XDI3SubSegment.create("!1111"));
-		ContextNode replacementContextNode = graph.getRootContextNode().createContextNode(XDI3SubSegment.create("!2222"));
+		ContextNode referenceContextNode = graph.getRootContextNode().createDeepContextNode(XDI3Segment.create("=pseudo1"));
+		ContextNode replacementContextNode = graph.getRootContextNode().createDeepContextNode(XDI3Segment.create("=pseudo2"));
 
 		// test $ref
 

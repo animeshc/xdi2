@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import xdi2.core.ContextNode;
 import xdi2.core.Graph;
 import xdi2.core.Relation;
-import xdi2.core.features.roots.XdiRoot;
+import xdi2.core.features.nodetypes.XdiAbstractRoot;
 import xdi2.core.impl.memory.MemoryGraphFactory;
 import xdi2.core.io.XDIReader;
 import xdi2.core.io.XDIReaderRegistry;
@@ -87,6 +87,7 @@ public class XDIGrapher extends javax.servlet.http.HttpServlet implements javax.
 
 		request.setAttribute("sampleInputs", Integer.valueOf(sampleInputs.size()));
 		request.setAttribute("input", sampleInputs.get(Integer.parseInt(sample) - 1));
+
 		request.getRequestDispatcher("/XDIGrapher.jsp").forward(request, response);
 	}
 
@@ -160,9 +161,10 @@ public class XDIGrapher extends javax.servlet.http.HttpServlet implements javax.
 	private static void addContextNodeToBuffer(StringBuffer buffer, ContextNode contextNode) {
 
 		buffer.append("{\n");
+		buffer.append("type: \"context\",\n");
 		buffer.append("name: \"" + contextNode.getXri() + "\",\n");
 		buffer.append("arc: \"" + (contextNode.isRootContextNode() ? "()" : contextNode.getArcXri()) + "\",\n");
-		buffer.append("root: " + XdiRoot.isValid(contextNode) + ",\n");
+		buffer.append("root: " + XdiAbstractRoot.isValid(contextNode) + ",\n");
 		buffer.append("contents: [\n");
 
 		for (Iterator<ContextNode> innerContextNodes = contextNode.getContextNodes(); innerContextNodes.hasNext(); ) {
@@ -176,8 +178,9 @@ public class XDIGrapher extends javax.servlet.http.HttpServlet implements javax.
 		if (contextNode.containsLiteral()) {
 
 			buffer.append("{\n");
+			buffer.append("type: \"literal\",\n");
 			buffer.append("name: \"\\\"" + contextNode.getLiteral().getLiteralData() + "\\\"\",\n");
-			buffer.append("arc: \"!\"\n");
+			buffer.append("arc: \"&\"\n");
 			buffer.append("}\n");
 		}
 
@@ -188,7 +191,11 @@ public class XDIGrapher extends javax.servlet.http.HttpServlet implements javax.
 
 			Relation relation = relations.next();
 
-			buffer.append("{arc: \"" + relation.getArcXri() + "\", target: \"" + relation.getTargetContextNodeXri() + "\"}");
+			buffer.append("{\n");
+			buffer.append("type: \"relation\",\n");
+			buffer.append("arc: \"" + relation.getArcXri() + "\",\n");
+			buffer.append("target: \"" + relation.getTargetContextNodeXri() + "\"\n");
+			buffer.append("}");
 			if (relations.hasNext()) buffer.append(",");
 			buffer.append("\n");
 		}

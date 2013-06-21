@@ -43,6 +43,8 @@
 		&nbsp;
 		<input type="radio" name="parser" value="apg" <%= "apg".equals(request.getAttribute("parser")) ? "checked" : "" %>>APG
 		&nbsp;
+		<input type="radio" name="parser" value="manual" <%= "manual".equals(request.getAttribute("parser")) ? "checked" : "" %>>manual (doesn't use ABNF)
+		&nbsp;
 		<input type="submit" value="Go!">
 
 		</td>
@@ -57,28 +59,28 @@
 	<% if (request.getAttribute("output1") != null) { %>
 	    <div class="tabbertab">
 		<h2>aParse Tree</h2>
-		<div class="result"><pre><%= request.getAttribute("output1") != null ? request.getAttribute("output1") : "" %></pre></div><br>
+		<div class="result"><pre><%= request.getAttribute("output1") %></pre></div><br>
 		</div>
 	<% } %>
 
 	<% if (request.getAttribute("output2") != null) { %>
 	    <div class="tabbertab">
 		<h2>aParse Stack</h2>
-		<div class="result"><pre><%= request.getAttribute("output2") != null ? request.getAttribute("output2") : "" %></pre></div><br>
+		<div class="result"><pre><%= request.getAttribute("output2") %></pre></div><br>
 		</div>
 	<% } %>
 
 	<% if (request.getAttribute("output3") != null) { %>
 	    <div class="tabbertab">
 		<h2>aParse Xml</h2>
-		<div class="result"><pre><%= request.getAttribute("output3") != null ? request.getAttribute("output3") : "" %></pre></div><br>
+		<div class="result"><pre><%= request.getAttribute("output3") %></pre></div><br>
 		</div>
 	<% } %>
 
 	<% if (request.getAttribute("output4") != null) { %>
 	    <div class="tabbertab">
 		<h2>aParse Counts</h2>
-		<div class="result"><pre><%= request.getAttribute("output4") != null ? request.getAttribute("output4") : "" %></pre></div><br>
+		<div class="result"><pre><%= request.getAttribute("output4") %></pre></div><br>
 		</div>
 	<% } %>
 	
@@ -89,21 +91,32 @@
 	<% if (request.getAttribute("output5") != null) { %>
 	    <div class="tabbertab">
 		<h2>APG Result</h2>
-		<div class="result"><pre><%= request.getAttribute("output5") != null ? request.getAttribute("output5") : "" %></pre></div><br>
+		<div class="result"><pre><%= request.getAttribute("output5") %></pre></div><br>
 		</div>
 	<% } %>
 	
 	<% if (request.getAttribute("output6") != null) { %>
 	    <div class="tabbertab">
 		<h2>APG Statistics</h2>
-		<div class="result"><pre><%= request.getAttribute("output6") != null ? request.getAttribute("output6") : "" %></pre></div><br>
+		<div class="result"><pre><%= request.getAttribute("output6") %></pre></div><br>
 		</div>
 	<% } %>
 	
 	<% if (request.getAttribute("output7") != null) { %>
 	    <div class="tabbertab">
 		<h2>APG Trace</h2>
-		<div class="result"><pre><%= request.getAttribute("output7") != null ? request.getAttribute("output7") : "" %></pre></div><br>
+		<div class="result"><pre><%= request.getAttribute("output7") %></pre></div><br>
+		</div>
+	<% } %>
+	
+	<% } %>
+
+	<% if ("manual".equals(request.getAttribute("parser"))) { %>
+
+	<% if (request.getAttribute("output8") != null) { %>
+	    <div class="tabbertab">
+		<h2>Node Types</h2>
+		<div class="result"><pre><%= request.getAttribute("output8") %></pre></div><br>
 		</div>
 	<% } %>
 	

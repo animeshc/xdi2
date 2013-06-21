@@ -3,9 +3,6 @@ package xdi2.messaging.target.interceptor.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import xdi2.core.Graph;
-import xdi2.core.impl.memory.MemoryGraphFactory;
-import xdi2.core.util.CopyUtil;
 import xdi2.core.xri3.XDI3Segment;
 import xdi2.messaging.Message;
 import xdi2.messaging.MessageResult;
@@ -17,7 +14,7 @@ import xdi2.messaging.target.interceptor.AbstractInterceptor;
 import xdi2.messaging.target.interceptor.MessageInterceptor;
 
 /**
- * This interceptor checks if the <to-graph> address of a message matches the owner of the messaging target.
+ * This interceptor checks if the target peer root address of a message matches the owner of the messaging target.
  * 
  * @author markus
  */
@@ -48,10 +45,7 @@ public class ToInterceptor extends AbstractInterceptor implements MessageInterce
 		XDI3Segment ownerAddress = messagingTarget.getOwnerAddress();
 		XDI3Segment toAddress = message.getToAddress();
 
-		Graph g = MemoryGraphFactory.getInstance().openGraph();
-		CopyUtil.copyContextNode(message.getContextNode(), g, null);
-
-		if (log.isDebugEnabled()) log.debug("ownerAddress=" + ownerAddress + ", recipientAddress=" + toAddress);
+		if (log.isDebugEnabled()) log.debug("ownerAddress=" + ownerAddress + ", toAddress=" + toAddress);
 
 		if (toAddress == null) throw new Xdi2MessagingException("No TO address found in message.", null, null);
 

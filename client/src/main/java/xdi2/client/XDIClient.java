@@ -24,4 +24,14 @@ public interface XDIClient {
 	 * Shuts down the client.
 	 */
 	public void close();
+
+	/**
+	 * Add a listener for XDI client events.
+	 */
+	public void addClientListener(XDIClientListener clientListener);
+
+	/**
+	 * Remove a listener for XDI client events.
+	 */
+	public void removeClientListener(XDIClientListener clientListener);
 }

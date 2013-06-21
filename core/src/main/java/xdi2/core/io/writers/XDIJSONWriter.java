@@ -28,9 +28,13 @@ import xdi2.core.xri3.XDI3Segment;
 import xdi2.core.xri3.XDI3Statement;
 import xdi2.core.xri3.XDI3SubSegment;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.stream.JsonWriter;
 
 public class XDIJSONWriter extends AbstractXDIWriter {
 
@@ -41,6 +45,8 @@ public class XDIJSONWriter extends AbstractXDIWriter {
 	public static final String FORMAT_NAME = "XDI/JSON";
 	public static final String FILE_EXTENSION = "json";
 	public static final MimeType MIME_TYPE = new MimeType("application/xdi+json");
+
+	private static final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
 	private boolean writeImplied;
 	private boolean writeOrdered;
@@ -62,10 +68,10 @@ public class XDIJSONWriter extends AbstractXDIWriter {
 		this.writeInner = "1".equals(this.parameters.getProperty(XDIWriterRegistry.PARAMETER_INNER, XDIWriterRegistry.DEFAULT_INNER));
 		this.writePretty = "1".equals(this.parameters.getProperty(XDIWriterRegistry.PARAMETER_PRETTY, XDIWriterRegistry.DEFAULT_PRETTY));
 
-		if (log.isDebugEnabled()) log.debug("Parameters: writeImplied=" + this.writeImplied + ", writeOrdered=" + this.writeOrdered + ", writeInner=" + this.writeInner + ", writePretty=" + this.writePretty);
+		if (log.isTraceEnabled()) log.trace("Parameters: writeImplied=" + this.writeImplied + ", writeOrdered=" + this.writeOrdered + ", writeInner=" + this.writeInner + ", writePretty=" + this.writePretty);
 	}
 
-	private void writeInternal(Graph graph, JSONObject jsonObject) throws IOException {
+	private void writeInternal(Graph graph, JsonObject jsonObject) throws IOException {
 
 		// write ordered?
 
@@ -99,10 +105,10 @@ public class XDIJSONWriter extends AbstractXDIWriter {
 		for (Statement statement : statements) {
 
 			XDI3Statement statementXri = statement.getXri();
-			
+
 			// put the statement into the JSON object
 
-			this.putStatementIntoJSONObject(statementXri, jsonObject);
+			this.putStatementIntoJsonObject(statementXri, jsonObject);
 		}
 	}
 
@@ -111,38 +117,32 @@ public class XDIJSONWriter extends AbstractXDIWriter {
 
 		// write
 
-		JSONObject jsonObject = new JSONObject();
+		JsonObject jsonObject = new JsonObject();
 
 		this.writeInternal(graph, jsonObject);
 
-		writer.write(JSON.toJSONString(jsonObject, this.writePretty));
+		JsonWriter jsonWriter = new JsonWriter(writer);
+		if (this.writePretty) jsonWriter.setIndent("  ");
+		gson.toJson(jsonObject, jsonWriter);
 		writer.flush();
 
 		return writer;
 	}
 
-	private void putStatementIntoJSONObject(XDI3Statement statementXri, JSONObject jsonObject) throws IOException {
+	private void putStatementIntoJsonObject(XDI3Statement statementXri, JsonObject jsonObject) throws IOException {
 
 		// inner root short notation?
 
-		if (this.writeInner) if (this.tryPutStatementIntoInnerJSONObject(statementXri, jsonObject)) return;
+		if (this.writeInner) if (this.tryPutStatementIntoInnerJsonObject(statementXri, jsonObject)) return;
 
-		// find the JSON array
+		// add the object
 
 		String key = statementXri.getSubject() + "/" + statementXri.getPredicate();
 
-		JSONArray jsonArray = jsonObject.getJSONArray(key);
-
-		if (jsonArray == null) {
-
-			jsonArray = new JSONArray();
-			jsonObject.put(key, jsonArray);
-		}
-
-		addObjectToJSONArray(statementXri, jsonArray);
+		addObjectToJsonObject(statementXri, jsonObject, key);
 	}
 
-	private boolean tryPutStatementIntoInnerJSONObject(XDI3Statement statementXri, JSONObject jsonObject) throws IOException {
+	private boolean tryPutStatementIntoInnerJsonObject(XDI3Statement statementXri, JsonObject jsonObject) throws IOException {
 
 		XDI3SubSegment subjectFirstSubSegment = statementXri.getSubject().getFirstSubSegment();
 
@@ -158,60 +158,61 @@ public class XDIJSONWriter extends AbstractXDIWriter {
 
 		String innerRootKey = "" + innerRootSubject + "/" + innerRootPredicate;
 
-		JSONArray innerRootJsonArray = jsonObject.getJSONArray(innerRootKey);
+		JsonArray innerRootJsonArray = (JsonArray) jsonObject.get(innerRootKey);
 
 		if (innerRootJsonArray == null) {
 
-			innerRootJsonArray = new JSONArray();
-			jsonObject.put(innerRootKey, innerRootJsonArray);
+			innerRootJsonArray = new JsonArray();
+			jsonObject.add(innerRootKey, innerRootJsonArray);
 		}
 
 		// find the inner root JSON object
 
-		JSONObject innerRootJsonObject = findJSONObjectInJSONArray(innerRootJsonArray);
+		JsonObject innerRootJsonObject = findJsonObjectInJsonArray(innerRootJsonArray);
 
 		if (innerRootJsonObject == null) {
 
-			innerRootJsonObject = new JSONObject();
+			innerRootJsonObject = new JsonObject();
 			innerRootJsonArray.add(innerRootJsonObject);
 		}
-		
+
 		// put the statement into the inner root JSON object
 
-		this.putStatementIntoJSONObject(reducedStatementXri, innerRootJsonObject);
-		
+		this.putStatementIntoJsonObject(reducedStatementXri, innerRootJsonObject);
+
 		// done
-		
+
 		return true;
 	}
 
-	private static JSONObject findJSONObjectInJSONArray(JSONArray jsonArray) {
+	private static JsonObject findJsonObjectInJsonArray(JsonArray jsonArray) {
 
-		for (Iterator<Object> objects = jsonArray.iterator(); objects.hasNext(); ) {
+		for (JsonElement jsonElement : jsonArray) {
 
-			Object object = objects.next();
-
-			if (object instanceof JSONObject) return (JSONObject) object;
+			if (jsonElement instanceof JsonObject) return (JsonObject) jsonElement;
 		}
 
 		return null;
 	}
 
-	private static void addObjectToJSONArray(XDI3Statement statementXri, JSONArray jsonArray) throws IOException {
+	private static void addObjectToJsonObject(XDI3Statement statementXri, JsonObject jsonObject, String key) throws IOException {
 
 		if (statementXri.isLiteralStatement()) {
 
 			String literalData = statementXri.getLiteralData(); 
 
-			if (literalData != null) {
-
-				jsonArray.add(literalData);
-			} else {
-
-			}
+			jsonObject.add(key, new JsonPrimitive(literalData));
 		} else {
 
-			jsonArray.add(statementXri.getObject().toString());
+			JsonArray jsonArray = (JsonArray) jsonObject.get(key);
+
+			if (jsonArray == null) {
+
+				jsonArray = new JsonArray();
+				jsonObject.add(key, jsonArray);
+			}
+
+			jsonArray.add(new JsonPrimitive(statementXri.getObject().toString()));
 		}
 	}
 }

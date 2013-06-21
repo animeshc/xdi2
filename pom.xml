@@ -22,21 +22,21 @@
 	</modules>
 
 	<issueManagement>
-		<url>https://github.com/peacekeeper/xdi2/issues</url>
+		<url>https://github.com/projectdanube/xdi2/issues</url>
 		<system>GitHub Issues</system>
 	</issueManagement>
 
 	<distributionManagement>
 		<site>
 			<id>github-project-site</id>
-			<url>scm:git:ssh://git@github.com/peacekeeper/xdi2.git:gh-pages</url>
+			<url>scm:git:ssh://git@github.com/projectdanube/xdi2.git:gh-pages</url>
 		</site>
 	</distributionManagement>
 
 	<scm>
-		<url>https://github.com/peacekeeper/xdi2</url>
-		<connection>scm:git:git://github.com/peacekeeper/xdi2.git</connection>
-		<developerConnection>scm:git:git@github.com:peacekeeper/xdi2.git</developerConnection>
+		<url>https://github.com/projectdanube/xdi2</url>
+		<connection>scm:git:git://github.com/projectdanube/xdi2.git</connection>
+		<developerConnection>scm:git:git@github.com:projectdanube/xdi2.git</developerConnection>
 	</scm>
 
 	<repositories>
@@ -140,6 +140,20 @@
 					<aggregate>true</aggregate>
 					<notimestamp>true</notimestamp>
 					<source>1.6</source>
+					<doclet>org.jboss.apiviz.APIviz</doclet>
+					<docletArtifact>
+						<groupId>org.jboss.apiviz</groupId>
+						<artifactId>apiviz</artifactId>
+						<version>1.3.2.GA</version>
+					</docletArtifact>
+					<charset>UTF-8</charset>
+					<encoding>UTF-8</encoding>
+					<docencoding>UTF-8</docencoding>
+					<breakiterator>true</breakiterator>
+					<version>true</version>
+					<author>true</author>
+					<keywords>true</keywords>
+					<useStandardDocletOptions>true</useStandardDocletOptions>
 				</configuration>
 				<executions>
 					<execution>
@@ -151,7 +165,18 @@
 					</execution>
 				</executions>
 			</plugin>
-
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 
 		<pluginManagement>
