@@ -8,7 +8,6 @@ import xdi2.core.Statement;
 import xdi2.core.constants.XDIConstants;
 import xdi2.core.features.nodetypes.XdiInnerRoot;
 import xdi2.core.util.StatementUtil;
-import xdi2.core.util.XDI3Util;
 import xdi2.core.xri3.XDI3Segment;
 import xdi2.core.xri3.XDI3Statement;
 
@@ -40,7 +39,7 @@ public abstract class AbstractStatement implements Statement {
 			if (relation == null) return false;
 
 			XdiInnerRoot innerRoot = XdiInnerRoot.fromContextNode(relation.follow());
-			if (innerRoot != null && innerRoot.getPredicateRelation().equals(relation) && ! innerRoot.getContextNode().isEmpty()) return true;
+			if (innerRoot != null && relation.equals(innerRoot.getPredicateRelation()) && ! innerRoot.getContextNode().isEmpty()) return true;
 		}
 
 		return false;
@@ -138,18 +137,6 @@ public abstract class AbstractStatement implements Statement {
 		private static final long serialVersionUID = -7006808512493295364L;
 
 		@Override
-		public XDI3Segment getContextNodeXri() {
-
-			if (XDIConstants.XRI_S_ROOT.equals(this.getSubject())) {
-
-				return (XDI3Segment) this.getObject();
-			} else {
-
-				return XDI3Util.expandXri(this.getSubject(), (XDI3Segment) this.getObject());
-			}
-		}
-
-		@Override
 		public final XDI3Segment getPredicate() {
 
 			return XDIConstants.XRI_S_CONTEXT;
@@ -167,12 +154,6 @@ public abstract class AbstractStatement implements Statement {
 		private static final long serialVersionUID = -2393268622327844933L;
 
 		@Override
-		public XDI3Segment getContextNodeXri() {
-
-			return this.getSubject();
-		}
-
-		@Override
 		public Relation getRelation() {
 
 			return null;
@@ -182,12 +163,6 @@ public abstract class AbstractStatement implements Statement {
 	public static abstract class AbstractLiteralStatement extends AbstractStatement implements LiteralStatement {
 
 		private static final long serialVersionUID = -7876412291137305476L;
-
-		@Override
-		public XDI3Segment getContextNodeXri() {
-
-			return this.getSubject();
-		}
 
 		@Override
 		public final XDI3Segment getPredicate() {

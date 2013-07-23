@@ -86,6 +86,11 @@ public class LinkContractInterceptor extends AbstractInterceptor implements Mess
 
 			this.setLinkContractsGraph(((GraphMessagingTarget) messagingTarget).getGraph());
 		}
+
+		if (this.getLinkContractsGraph() == null) {
+
+			throw new Xdi2MessagingException("No link contracts graph.", null, null);
+		}
 	}
 
 	@Override
@@ -157,7 +162,7 @@ public class LinkContractInterceptor extends AbstractInterceptor implements Mess
 
 			ContextNode contextNode = contextNodes.next();
 
-			if (contextNode.isRootContextNode() || XDI3Util.startsWith(contextNodeXri, contextNode.getXri())) {
+			if (contextNode.isRootContextNode() || XDI3Util.startsWith(contextNodeXri, contextNode.getXri()) != null) {
 
 				log.debug("Link contract " + linkContract + " allows " + operation.getOperationXri() + " on " + contextNodeXri);
 				return true;
@@ -168,7 +173,7 @@ public class LinkContractInterceptor extends AbstractInterceptor implements Mess
 
 			ContextNode contextNode = contextNodes.next();
 
-			if (contextNode.isRootContextNode() || XDI3Util.startsWith(contextNodeXri, contextNode.getXri())) {
+			if (contextNode.isRootContextNode() || XDI3Util.startsWith(contextNodeXri, contextNode.getXri()) != null) {
 
 				log.debug("Link contract " + linkContract + " allows " + operation.getOperationXri() + " on " + contextNodeXri);
 				return true;
@@ -189,7 +194,12 @@ public class LinkContractInterceptor extends AbstractInterceptor implements Mess
 		LinkContract linkContract = getLinkContract(executionContext);
 		if (linkContract == null) throw new Xdi2MessagingException("No link contract.", null, executionContext);
 
-		XDI3Segment contextNodeXri = targetStatement.getContextNodeXri();
+		XDI3Segment contextNodeXri;
+
+		if (targetStatement.isContextNodeStatement()) 
+			contextNodeXri = targetStatement.getTargetContextNodeXri();
+		else
+			contextNodeXri = targetStatement.getContextNodeXri();
 
 		if (! checkLinkContractAuthorization(operation, contextNodeXri, executionContext)) {
 

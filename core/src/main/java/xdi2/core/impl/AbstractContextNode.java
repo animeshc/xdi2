@@ -79,20 +79,6 @@ public abstract class AbstractContextNode implements ContextNode {
 	}
 
 	@Override
-	public synchronized void deleteWhileEmpty() {
-
-		ContextNode currentContextNode = this;
-		ContextNode parentContextNode;
-
-		while (currentContextNode.isEmpty() && (! currentContextNode.isRootContextNode())) {
-
-			parentContextNode = currentContextNode.getContextNode();
-			currentContextNode.delete();
-			currentContextNode = parentContextNode;
-		}
-	}
-
-	@Override
 	public synchronized void clear() {
 
 		this.deleteContextNodes();
@@ -137,6 +123,9 @@ public abstract class AbstractContextNode implements ContextNode {
 	@Override
 	public ContextNode createDeepContextNode(XDI3Segment contextNodeArcXris) {
 
+		if (contextNodeArcXris == null) return this;
+		if (XDIConstants.XRI_S_ROOT.equals(contextNodeArcXris)) return this;
+
 		XDI3SubSegment contextNodeArcXri = XDI3Util.localXri(contextNodeArcXris, 1).getFirstSubSegment();
 		contextNodeArcXris = XDI3Util.parentXri(contextNodeArcXris, -1);
 
@@ -162,7 +151,7 @@ public abstract class AbstractContextNode implements ContextNode {
 	public ContextNode setDeepContextNode(XDI3Segment contextNodeArcXris) {
 
 		if (contextNodeArcXris == null) return this;
-		if (XDIConstants.XRI_S_ROOT.equals(contextNodeArcXris) && this.isRootContextNode()) return this;
+		if (XDIConstants.XRI_S_ROOT.equals(contextNodeArcXris)) return this;
 
 		ContextNode contextNode = this;
 
@@ -480,13 +469,25 @@ public abstract class AbstractContextNode implements ContextNode {
 	@Override
 	public boolean containsRelations(XDI3Segment arcXri) {
 
-		return this.getRelation(arcXri) != null;
+		return this.getRelations(arcXri).hasNext();
 	}
 
 	@Override
 	public boolean containsRelations() {
 
-		return this.getRelationCount() > 0;
+		return this.getRelations().hasNext();
+	}
+
+	@Override
+	public boolean containsIncomingRelations(XDI3Segment arcXri) {
+
+		return this.getIncomingRelations(arcXri).hasNext();
+	}
+
+	@Override
+	public boolean containsIncomingRelations() {
+
+		return this.getIncomingRelations().hasNext();
 	}
 
 	@Override
@@ -737,7 +738,10 @@ public abstract class AbstractContextNode implements ContextNode {
 		if (XDIConstants.XRI_SS_CONTEXT.equals(arcXri)) throw new Xdi2GraphException("Invalid relation arc XRI: " + arcXri);
 		if (XDIConstants.XRI_SS_LITERAL.equals(arcXri)) throw new Xdi2GraphException("Invalid relation arc XRI: " + arcXri);
 
-		if (XDIDictionaryConstants.XRI_S_REF.equals(arcXri) && ! this.isEmpty()) throw new Xdi2GraphException("Cannot add " + XDIDictionaryConstants.XRI_S_REF + " relational arc to non-empty context node.");
+		if (XDIDictionaryConstants.XRI_S_REF.equals(arcXri) && ! this.isEmpty()) {
+			
+			throw new Xdi2GraphException("Cannot add " + XDIDictionaryConstants.XRI_S_REF + " relational arc to non-empty context node.");
+		}
 		if (XDIDictionaryConstants.XRI_S_REP.equals(arcXri) && ! this.isEmpty()) throw new Xdi2GraphException("Cannot add " + XDIDictionaryConstants.XRI_S_REP + " relational arc to non-empty context node.");
 
 		if (checkExists && this.containsRelation(arcXri, targetContextNode.getXri())) throw new Xdi2GraphException("Context node " + this.getXri() + " already contains the relation " + arcXri + "/" + targetContextNode + ".");

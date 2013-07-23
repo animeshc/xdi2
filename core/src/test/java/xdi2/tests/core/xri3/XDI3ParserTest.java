@@ -21,7 +21,7 @@ public abstract class XDI3ParserTest extends TestCase {
 		assertEquals(statement.getObject(), "xxx");
 
 		assertEquals(statement.getContextNodeXri(), parser.parseXDI3Segment("=markus[<+email>]!1&"));
-		assertNull(statement.getArcXri());
+		assertNull(statement.getContextNodeArcXri());
 		assertNull(statement.getTargetContextNodeXri());
 		assertEquals(statement.getLiteralData(), "xxx");
 		assertNull(statement.getInnerRootStatement());
