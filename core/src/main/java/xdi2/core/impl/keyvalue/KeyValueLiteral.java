@@ -10,9 +10,9 @@ public class KeyValueLiteral extends AbstractLiteral implements Literal {
 	private KeyValueStore keyValueStore;
 	private String key;
 
-	private String literalData;
+	private Object literalData;
 
-	KeyValueLiteral(KeyValueContextNode contextNode, KeyValueStore keyValueStore, String key, String literalData) {
+	KeyValueLiteral(KeyValueContextNode contextNode, KeyValueStore keyValueStore, String key, Object literalData) {
 
 		super(contextNode);
 
@@ -23,20 +23,20 @@ public class KeyValueLiteral extends AbstractLiteral implements Literal {
 	}
 
 	@Override
-	public String getLiteralData() {
+	public Object getLiteralData() {
 
 		if (this.literalData == null) {
 
-			this.literalData = this.keyValueStore.getOne(this.key);
+			this.literalData = stringToLiteralData(this.keyValueStore.getOne(this.key));
 		}
 
 		return this.literalData;
 	}
 
 	@Override
-	public void setLiteralData(String literalData) {
+	public void setLiteralData(Object literalData) {
 
-		this.keyValueStore.replace(this.key, literalData);
+		this.keyValueStore.replace(this.key, literalDataToString(literalData));
 
 		this.literalData = literalData;
 	}
