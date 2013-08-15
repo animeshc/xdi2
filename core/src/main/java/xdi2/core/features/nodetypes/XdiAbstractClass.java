@@ -89,7 +89,9 @@ public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends
 	@Override
 	public U setXdiInstanceUnordered(XDI3SubSegment arcXri) {
 
-		if (arcXri == null) arcXri = XdiAbstractInstanceUnordered.createArcXriFromRandom(false);
+		boolean attribute = this.attribute();
+
+		if (arcXri == null) arcXri = XdiAbstractInstanceUnordered.createArcXriFromRandom(attribute);
 
 		ContextNode instanceContextNode = this.getContextNode().getContextNode(arcXri);
 		if (instanceContextNode == null) instanceContextNode = this.getContextNode().createContextNode(arcXri);
@@ -124,7 +126,7 @@ public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends
 	 * Returns the number of XDI instances in this XDI class.
 	 */
 	@Override
-	public int getXdiInstancesUnorderedCount() {
+	public long getXdiInstancesUnorderedCount() {
 
 		return new IteratorCounter(this.getXdiInstancesUnordered()).count();
 	}
@@ -134,11 +136,13 @@ public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends
 	 * @return The XDI element.
 	 */
 	@Override
-	public O setXdiInstanceOrdered(int index) {
+	public O setXdiInstanceOrdered(long index) {
+
+		boolean attribute = this.attribute();
 
 		if (index < 0) index = this.getXdiInstancesOrderedCount();
 
-		XDI3SubSegment arcXri = XdiAbstractInstanceOrdered.createArcXri(Integer.toString(index));
+		XDI3SubSegment arcXri = XdiAbstractInstanceOrdered.createArcXri(Long.toString(index), attribute);
 
 		ContextNode contextNode = this.getContextNode().getContextNode(arcXri);
 		if (contextNode == null) contextNode = this.getContextNode().createContextNode(arcXri);
@@ -151,9 +155,11 @@ public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends
 	 * @return The XDI element.
 	 */
 	@Override
-	public O getXdiInstanceOrdered(int index) {
+	public O getXdiInstanceOrdered(long index) {
 
-		XDI3SubSegment arcXri = XdiAbstractInstanceOrdered.createArcXri(Integer.toString(index));
+		boolean attribute = this.attribute();
+
+		XDI3SubSegment arcXri = XdiAbstractInstanceOrdered.createArcXri(Long.toString(index), attribute);
 
 		ContextNode contextNode = this.getContextNode().getContextNode(arcXri);
 		if (contextNode == null) return null;
@@ -175,7 +181,7 @@ public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends
 	 * Returns the number of XDI elements in this XDI class.
 	 */
 	@Override
-	public int getXdiInstancesOrderedCount() {
+	public long getXdiInstancesOrderedCount() {
 
 		return new IteratorCounter(this.getXdiInstancesOrdered()).count();
 	}
@@ -215,6 +221,20 @@ public abstract class XdiAbstractClass<U extends XdiInstanceUnordered, O extends
 	public Class<I> getI() {
 
 		return this.i;
+	}
+
+	private boolean attribute() {
+
+		boolean attribute;
+
+		if (this instanceof XdiAttributeClass)
+			attribute = true;
+		else if (this instanceof XdiEntityClass)
+			attribute = false;
+		else
+			throw new IllegalStateException("Invalid XDI class: " + this.getClass().getSimpleName());
+
+		return attribute;
 	}
 
 	/*
