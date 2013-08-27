@@ -105,7 +105,7 @@ public abstract class XDI3ParserTest extends TestCase {
 		statement = parser.parseXDI3Statement("=neustar*animesh<+age>&/&/99");
 		assertEquals(statement.getSubject(), parser.parseXDI3Segment("=neustar*animesh<+age>&"));
 		assertEquals(statement.getPredicate(), parser.parseXDI3Segment("&"));
-		assertEquals(statement.getObject(), Integer.valueOf(99));
+		assertEquals(statement.getObject(), Double.valueOf(99));
 		assertFalse(statement.isContextNodeStatement());
 		assertTrue(statement.isLiteralStatement());
 		assertFalse(statement.isRelationStatement());
@@ -118,9 +118,17 @@ public abstract class XDI3ParserTest extends TestCase {
 		assertTrue(statement.isLiteralStatement());
 		assertFalse(statement.isRelationStatement());
 
+		statement = parser.parseXDI3Statement("=neustar*animesh<+color>&/&/null");
+		assertEquals(statement.getSubject(), parser.parseXDI3Segment("=neustar*animesh<+color>&"));
+		assertEquals(statement.getPredicate(), parser.parseXDI3Segment("&"));
+		assertNull(statement.getObject());
+		assertFalse(statement.isContextNodeStatement());
+		assertTrue(statement.isLiteralStatement());
+		assertFalse(statement.isRelationStatement());
+
 		try {
 
-			statement = parser.parseXDI3Statement("=neustar*animesh<+smoker>&/&/null");
+			statement = parser.parseXDI3Statement("=neustar*animesh<+err>&/&/test");
 			fail();
 		} catch (ParserException ex) {
 
@@ -187,6 +195,42 @@ public abstract class XDI3ParserTest extends TestCase {
 		assertEquals(s.getXRef().getSegment().getFirstSubSegment().getXRef().getXs(), XDIConstants.XS_ROOT);
 		assertTrue(s.getXRef().getSegment().getFirstSubSegment().getXRef().hasLiteral());
 		assertEquals(s.getXRef().getSegment().getFirstSubSegment().getXRef().getLiteral(), "name");
+	}
+
+	public void testComponents() throws Exception {
+
+		XDI3Statement contextNodeStatement = XDI3Statement.create("=markus/()/[<+email>]");
+		XDI3Statement contextNodeStatement2 = XDI3Statement.fromComponents(XDI3Segment.create("=markus"), XDIConstants.XRI_S_CONTEXT, XDI3SubSegment.create("[<+email>]"));
+		XDI3Statement contextNodeStatement3 = XDI3Statement.fromContextNodeComponents(XDI3Segment.create("=markus"), XDI3SubSegment.create("[<+email>]"));
+
+		assertEquals(contextNodeStatement.getSubject(), XDI3Segment.create("=markus"));
+		assertEquals(contextNodeStatement.getPredicate(), XDIConstants.XRI_S_CONTEXT);
+		assertEquals(contextNodeStatement.getObject(), XDI3SubSegment.create("[<+email>]"));
+
+		assertEquals(contextNodeStatement, contextNodeStatement2);
+		assertEquals(contextNodeStatement, contextNodeStatement3);
+
+		XDI3Statement relationStatement = XDI3Statement.create("=markus/+friend/=animesh");
+		XDI3Statement relationStatement2 = XDI3Statement.fromComponents(XDI3Segment.create("=markus"), XDI3Segment.create("+friend"), XDI3Segment.create("=animesh"));
+		XDI3Statement relationStatement3 = XDI3Statement.fromRelationComponents(XDI3Segment.create("=markus"), XDI3Segment.create("+friend"), XDI3Segment.create("=animesh"));
+
+		assertEquals(relationStatement, relationStatement2);
+		assertEquals(relationStatement, relationStatement3);
+
+		assertEquals(relationStatement.getSubject(), XDI3Segment.create("=markus"));
+		assertEquals(relationStatement.getPredicate(), XDI3Segment.create("+friend"));
+		assertEquals(relationStatement.getObject(), XDI3Segment.create("=animesh"));
+
+		XDI3Statement literalStatement = XDI3Statement.create("=markus<+name>&/&/\"Markus Sabadello\"");
+		XDI3Statement literalStatement2 = XDI3Statement.fromComponents(XDI3Segment.create("=markus<+name>&"), XDIConstants.XRI_S_LITERAL, "Markus Sabadello");
+		XDI3Statement literalStatement3 = XDI3Statement.fromLiteralComponents(XDI3Segment.create("=markus<+name>&"), "Markus Sabadello");
+
+		assertEquals(literalStatement.getSubject(), XDI3Segment.create("=markus<+name>&"));
+		assertEquals(literalStatement.getPredicate(), XDIConstants.XRI_S_LITERAL);
+		assertEquals(literalStatement.getObject(), "Markus Sabadello");
+
+		assertEquals(literalStatement, literalStatement2);
+		assertEquals(literalStatement, literalStatement3);
 	}
 
 	public abstract XDI3Parser getParser();
