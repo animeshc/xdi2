@@ -1,27 +1,22 @@
 package xdi2.core.impl.json;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import xdi2.core.ContextNode;
 import xdi2.core.Literal;
 import xdi2.core.Relation;
 import xdi2.core.constants.XDIConstants;
-import xdi2.core.exceptions.Xdi2RuntimeException;
 import xdi2.core.impl.AbstractContextNode;
 import xdi2.core.impl.AbstractLiteral;
+import xdi2.core.util.XDI3Util;
 import xdi2.core.util.iterators.DescendingIterator;
 import xdi2.core.util.iterators.EmptyIterator;
 import xdi2.core.util.iterators.IteratorContains;
 import xdi2.core.util.iterators.IteratorListMaker;
-import xdi2.core.util.iterators.IteratorRemover;
 import xdi2.core.util.iterators.MappingIterator;
 import xdi2.core.util.iterators.ReadOnlyIterator;
 import xdi2.core.xri3.XDI3Segment;
@@ -36,44 +31,20 @@ public class JSONContextNode extends AbstractContextNode implements ContextNode 
 
 	private static final long serialVersionUID = 1222781682444161539L;
 
-	private static final Logger log = LoggerFactory.getLogger(JSONContextNode.class);
-
-	private JSONStore jsonStore;
-	private String id;
-
 	private XDI3SubSegment arcXri;
+	private XDI3Segment xri;
 
-	JSONContextNode(JSONGraph graph, JSONContextNode contextNode, JSONStore jsonStore, String id, XDI3SubSegment arcXri) {
+	JSONContextNode(JSONGraph graph, JSONContextNode contextNode, XDI3SubSegment arcXri, XDI3Segment xri) {
 
 		super(graph, contextNode);
 
-		this.jsonStore = jsonStore;
-		this.id = id;
-
 		this.arcXri = arcXri;
+		this.xri = xri;
 	}
 
 	/*
 	 * Methods related to context nodes of this context node
 	 */
-
-	private synchronized ContextNode createContextNodeInternal(XDI3SubSegment arcXri) {
-
-		JsonObject jsonObject = this.loadJson();
-		if (jsonObject == null) jsonObject = new JsonObject();
-
-		String id = this.getContextNodeId(arcXri);
-
-		JsonArray jsonArrayContexts = jsonObject.getAsJsonArray(XDIConstants.XRI_SS_CONTEXT.toString());
-		if (jsonArrayContexts == null) { jsonArrayContexts = new JsonArray(); jsonObject.add(XDIConstants.XRI_SS_CONTEXT.toString(), jsonArrayContexts); }
-		if (! new IteratorContains<JsonElement> (jsonArrayContexts.iterator(), new JsonPrimitive(arcXri.toString())).contains()) jsonArrayContexts.add(new JsonPrimitive(arcXri.toString()));
-
-		this.saveJson(jsonObject);
-
-		JSONContextNode jsonContextNode = new JSONContextNode((JSONGraph) this.getGraph(), this, this.jsonStore, id, arcXri);
-
-		return jsonContextNode;
-	}
 
 	@Override
 	public XDI3SubSegment getArcXri() {
@@ -82,26 +53,73 @@ public class JSONContextNode extends AbstractContextNode implements ContextNode 
 	}
 
 	@Override
-	public ContextNode createContextNode(XDI3SubSegment arcXri) {
+	public XDI3Segment getXri() {
 
-		this.checkContextNode(arcXri, true);
-
-		return this.createContextNodeInternal(arcXri);
+		return this.xri;
 	}
 
 	@Override
 	public ContextNode setContextNode(XDI3SubSegment arcXri) {
 
-		this.checkContextNode(arcXri, false);
+		this.checkContextNode(arcXri);
 
-		return this.createContextNodeInternal(arcXri);
+		((JSONGraph) this.getGraph()).jsonSaveToArray(this.getXri().toString(), XDIConstants.XRI_SS_CONTEXT.toString(), new JsonPrimitive(arcXri.toString()));
+
+		XDI3Segment xri = XDI3Util.concatXris(this.getXri(), arcXri);
+
+		JSONContextNode jsonContextNode = new JSONContextNode((JSONGraph) this.getGraph(), this, arcXri, xri);
+
+		return jsonContextNode;
+	}
+
+	@Override
+	public ContextNode getContextNode(XDI3SubSegment arcXri) {
+
+		JsonObject jsonObject = ((JSONGraph) this.getGraph()).jsonLoad(this.getXri().toString());
+
+		final JsonArray jsonArrayContexts = jsonObject.getAsJsonArray(XDIConstants.XRI_SS_CONTEXT.toString());
+		if (jsonArrayContexts == null) return null;
+		if (jsonArrayContexts.size() < 1) return null;
+
+		if (! new IteratorContains<JsonElement> (jsonArrayContexts.iterator(), new JsonPrimitive(arcXri.toString())).contains()) return null;
+
+		XDI3Segment xri = XDI3Util.concatXris(this.getXri(), arcXri);
+
+		return new JSONContextNode((JSONGraph) JSONContextNode.this.getGraph(), JSONContextNode.this, arcXri, xri);
+	}
+
+	@Override
+	public ContextNode getDeepContextNode(XDI3Segment contextNodeXri) {
+
+		if (XDIConstants.XRI_S_ROOT.equals(contextNodeXri) && this.isRootContextNode()) return this;
+
+		XDI3Segment parentContextNodeXri = XDI3Util.concatXris(this.getXri(), XDI3Util.parentXri(contextNodeXri, -1));
+		XDI3SubSegment arcXri = contextNodeXri.getLastSubSegment();
+
+		JsonObject jsonObject = ((JSONGraph) this.getGraph()).jsonLoad(parentContextNodeXri.toString());
+
+		final JsonArray jsonArrayContexts = jsonObject.getAsJsonArray(XDIConstants.XRI_SS_CONTEXT.toString());
+		if (jsonArrayContexts == null) return null;
+		if (jsonArrayContexts.size() < 1) return null;
+
+		if (! new IteratorContains<JsonElement> (jsonArrayContexts.iterator(), new JsonPrimitive(arcXri.toString())).contains()) return null;
+
+		JSONContextNode jsonContextNode = this;
+
+		for (XDI3SubSegment tempArcXri : contextNodeXri.getSubSegments()) {
+
+			XDI3Segment tempXri = XDI3Util.concatXris(jsonContextNode.getXri(), tempArcXri);
+
+			jsonContextNode = new JSONContextNode((JSONGraph) this.getGraph(), jsonContextNode, tempArcXri, tempXri);
+		}
+
+		return jsonContextNode;
 	}
 
 	@Override
 	public ReadOnlyIterator<ContextNode> getContextNodes() {
 
-		JsonObject jsonObject = this.loadJson();
-		if (jsonObject == null) return new EmptyIterator<ContextNode> ();
+		JsonObject jsonObject = ((JSONGraph) this.getGraph()).jsonLoad(this.getXri().toString());
 
 		final JsonArray jsonArrayContexts = jsonObject.getAsJsonArray(XDIConstants.XRI_SS_CONTEXT.toString());
 		if (jsonArrayContexts == null) return new EmptyIterator<ContextNode> ();
@@ -115,15 +133,15 @@ public class JSONContextNode extends AbstractContextNode implements ContextNode 
 			public ContextNode map(JsonElement jsonElement) {
 
 				XDI3SubSegment arcXri = XDI3SubSegment.create(((JsonPrimitive) jsonElement).getAsString());
-				String id = JSONContextNode.this.getContextNodeId(arcXri);
+				XDI3Segment xri = XDI3Util.concatXris(JSONContextNode.this.getXri(), arcXri);
 
-				return new JSONContextNode((JSONGraph) JSONContextNode.this.getGraph(), JSONContextNode.this, JSONContextNode.this.jsonStore, id, arcXri);
+				return new JSONContextNode((JSONGraph) JSONContextNode.this.getGraph(), JSONContextNode.this, arcXri, xri);
 			}
 		});
 	}
 
 	@Override
-	public void deleteContextNode(XDI3SubSegment arcXri) {
+	public void delContextNode(XDI3SubSegment arcXri) {
 
 		ContextNode contextNode = this.getContextNode(arcXri);
 		if (contextNode == null) return;
@@ -134,50 +152,17 @@ public class JSONContextNode extends AbstractContextNode implements ContextNode 
 		List<Relation> incomingRelations = new IteratorListMaker<Relation> (contextNode.getAllIncomingRelations()).list();
 		for (Relation incomingRelation : incomingRelations) incomingRelation.delete();
 
-		String id = this.getContextNodeId(arcXri);
-
-		JsonObject jsonObject = this.loadJson();
-
-		JsonArray jsonArrayContexts = jsonObject.getAsJsonArray(XDIConstants.XRI_SS_CONTEXT.toString());
-		if (jsonArrayContexts == null) { jsonArrayContexts = new JsonArray(); jsonObject.add(XDIConstants.XRI_SS_CONTEXT.toString(), jsonArrayContexts); }
-		new IteratorRemover<JsonElement> (jsonArrayContexts.iterator(), new JsonPrimitive(arcXri.toString())).remove();
-
-		this.deleteJson(id);
-		this.saveJson(jsonObject);
+		((JSONGraph) this.getGraph()).jsonDelete(contextNode.getXri().toString());
+		((JSONGraph) this.getGraph()).jsonDeleteFromArray(this.getXri().toString(), XDIConstants.XRI_SS_CONTEXT.toString(), new JsonPrimitive(arcXri.toString()));
 	}
 
 	@Override
-	public Relation createRelation(XDI3Segment arcXri, ContextNode targetContextNode) {
+	public Relation setRelation(XDI3Segment arcXri, ContextNode targetContextNode) {
 
-		this.checkRelation(arcXri, targetContextNode, true);
+		this.checkRelation(arcXri, targetContextNode);
 
-		JsonObject jsonObject = this.loadJson();
-		JsonObject jsonObjectTarget = ((JSONContextNode) targetContextNode).loadJson();
-		if (jsonObject == null) jsonObject = new JsonObject();
-		if (jsonObjectTarget == null) jsonObjectTarget = new JsonObject();
-
-		JsonArray jsonArrayRelations = jsonObject.getAsJsonArray(arcXri.toString());
-
-		if (jsonArrayRelations == null) {
-
-			jsonArrayRelations = new JsonArray();
-			jsonObject.add(arcXri.toString(), jsonArrayRelations);
-		}
-
-		jsonArrayRelations.add(new JsonPrimitive(targetContextNode.getXri().toString()));
-
-		JsonArray jsonArrayIncomingRelations = jsonObjectTarget.getAsJsonArray("_" + arcXri.toString());
-
-		if (jsonArrayIncomingRelations == null) {
-
-			jsonArrayIncomingRelations = new JsonArray();
-			jsonObjectTarget.add("_" + arcXri.toString(), jsonArrayIncomingRelations);
-		}
-
-		jsonArrayIncomingRelations.add(new JsonPrimitive(this.getXri().toString()));
-
-		this.saveJson(jsonObject);
-		((JSONContextNode) targetContextNode).saveJson(jsonObjectTarget);
+		((JSONGraph) this.getGraph()).jsonSaveToArray(this.getXri().toString(), arcXri.toString(), new JsonPrimitive(targetContextNode.getXri().toString()));
+		((JSONGraph) this.getGraph()).jsonSaveToArray(targetContextNode.getXri().toString(), "/" + arcXri.toString(), new JsonPrimitive(this.getXri().toString()));
 
 		return new JSONRelation(this, arcXri, targetContextNode.getXri());
 	}
@@ -185,8 +170,7 @@ public class JSONContextNode extends AbstractContextNode implements ContextNode 
 	@Override
 	public ReadOnlyIterator<Relation> getRelations() {
 
-		JsonObject jsonObject = this.loadJson();
-		if (jsonObject == null) return new EmptyIterator<Relation> ();
+		JsonObject jsonObject = ((JSONGraph) this.getGraph()).jsonLoad(this.getXri().toString());
 
 		final Set<Entry<String, JsonElement>> entrySet = new HashSet<Entry<String, JsonElement>> (jsonObject.entrySet());
 
@@ -195,7 +179,7 @@ public class JSONContextNode extends AbstractContextNode implements ContextNode 
 			@Override
 			public Iterator<Relation> descend(Entry<String, JsonElement> entry) {
 
-				if (entry.getKey().startsWith("_")) return null;
+				if (entry.getKey().startsWith("/")) return null;
 
 				final XDI3Segment arcXri = XDI3Segment.create(entry.getKey());
 				if (XDIConstants.XRI_SS_CONTEXT.equals(arcXri)) return null;
@@ -222,8 +206,7 @@ public class JSONContextNode extends AbstractContextNode implements ContextNode 
 	@Override
 	public ReadOnlyIterator<Relation> getIncomingRelations() {
 
-		JsonObject jsonObject = this.loadJson();
-		if (jsonObject == null) return new EmptyIterator<Relation> ();
+		JsonObject jsonObject = ((JSONGraph) this.getGraph()).jsonLoad(this.getXri().toString());
 
 		final Set<Entry<String, JsonElement>> entrySet = new HashSet<Entry<String, JsonElement>> (jsonObject.entrySet());
 
@@ -232,7 +215,7 @@ public class JSONContextNode extends AbstractContextNode implements ContextNode 
 			@Override
 			public Iterator<Relation> descend(Entry<String, JsonElement> entry) {
 
-				if (! entry.getKey().startsWith("_")) return null;
+				if (! entry.getKey().startsWith("/")) return null;
 
 				final XDI3Segment arcXri = XDI3Segment.create(entry.getKey().substring(1));
 
@@ -257,44 +240,18 @@ public class JSONContextNode extends AbstractContextNode implements ContextNode 
 	}
 
 	@Override
-	public void deleteRelation(XDI3Segment arcXri, XDI3Segment targetContextNodeXri) {
+	public void delRelation(XDI3Segment arcXri, XDI3Segment targetContextNodeXri) {
 
-		ContextNode targetContextNode = this.getGraph().getDeepContextNode(targetContextNodeXri);
-
-		JsonObject jsonObject = this.loadJson();
-
-		if (jsonObject != null) {
-
-			JsonArray jsonArrayRelations = jsonObject.getAsJsonArray(arcXri.toString());
-			new IteratorRemover<JsonElement> (jsonArrayRelations.iterator(), new JsonPrimitive(targetContextNodeXri.toString())).remove();
-			if (jsonArrayRelations.size() < 1) jsonObject.remove(arcXri.toString());
-
-			this.saveJson(jsonObject);
-		}
-
-		JsonObject jsonObjectTarget = ((JSONContextNode) targetContextNode).loadJson();
-
-		if (jsonObjectTarget != null) {
-
-			JsonArray jsonArrayIncomingRelations = jsonObjectTarget.getAsJsonArray("_" + arcXri.toString());
-			new IteratorRemover<JsonElement> (jsonArrayIncomingRelations.iterator(), new JsonPrimitive(this.getXri().toString())).remove();
-			if (jsonArrayIncomingRelations.size() < 1) jsonObjectTarget.remove("_" + arcXri.toString());
-
-			((JSONContextNode) targetContextNode).saveJson(jsonObjectTarget);
-		}
+		((JSONGraph) this.getGraph()).jsonDeleteFromArray(this.getXri().toString(), arcXri.toString(), new JsonPrimitive(targetContextNodeXri.toString()));
+		((JSONGraph) this.getGraph()).jsonDeleteFromArray(targetContextNodeXri.toString(), "/" + arcXri.toString(), new JsonPrimitive(this.getXri().toString()));
 	}
 
 	@Override
-	public Literal createLiteral(Object literalData) {
+	public Literal setLiteral(Object literalData) {
 
-		this.checkLiteral(literalData, true);
+		this.checkLiteral(literalData);
 
-		JsonObject jsonObject = this.loadJson();
-		if (jsonObject == null) jsonObject = new JsonObject();
-
-		jsonObject.add(XDIConstants.XRI_SS_LITERAL.toString(), AbstractLiteral.literalDataToJsonElement(literalData));
-
-		this.saveJson(jsonObject);
+		((JSONGraph) this.getGraph()).jsonSaveToObject(this.getXri().toString(), XDIConstants.XRI_SS_LITERAL.toString(), AbstractLiteral.literalDataToJsonElement(literalData));
 
 		return new JSONLiteral(this);
 	}
@@ -302,8 +259,7 @@ public class JSONContextNode extends AbstractContextNode implements ContextNode 
 	@Override
 	public Literal getLiteral() {
 
-		JsonObject jsonObject = this.loadJson();
-		if (jsonObject == null) return null;
+		JsonObject jsonObject = ((JSONGraph) this.getGraph()).jsonLoad(this.getXri().toString());
 
 		if (! jsonObject.has(XDIConstants.XRI_SS_LITERAL.toString())) return null;
 
@@ -311,61 +267,8 @@ public class JSONContextNode extends AbstractContextNode implements ContextNode 
 	}
 
 	@Override
-	public void deleteLiteral() {
+	public void delLiteral() {
 
-		JsonObject jsonObject = this.loadJson();
-		if (jsonObject == null) return;
-
-		jsonObject.remove(XDIConstants.XRI_SS_LITERAL.toString());
-
-		this.saveJson(jsonObject);
-	}
-
-	/*
-	 * Helper methods
-	 */
-
-	private String getContextNodeId(XDI3SubSegment arcXri) {
-
-		return (this.isRootContextNode() ? "" : this.id) + arcXri.toString();
-	}
-
-	JsonObject loadJson() {
-
-		if (log.isTraceEnabled()) log.trace("Loading JSON " + this.id);
-
-		try {
-
-			return JSONContextNode.this.jsonStore.load(this.id);
-		} catch (IOException ex) {
-
-			throw new Xdi2RuntimeException("Cannot load JSON at " + this.id + ": " + ex.getMessage(), ex);
-		}
-	}
-
-	void saveJson(JsonObject jsonObject) {
-
-		if (log.isTraceEnabled()) log.trace("Saving JSON " + this.id);
-
-		try {
-
-			this.jsonStore.save(this.id, jsonObject);
-		} catch (IOException ex) {
-
-			throw new Xdi2RuntimeException("Cannot save JSON at " + this.id + ": " + ex.getMessage(), ex);
-		}
-	}
-
-	void deleteJson(String id) {
-
-		if (log.isTraceEnabled()) log.trace("Deleting JSON " + id);
-
-		try {
-
-			this.jsonStore.delete(id);
-		} catch (IOException ex) {
-
-			throw new Xdi2RuntimeException("Cannot delete JSON at " + id + ": " + ex.getMessage(), ex);
-		}
+		((JSONGraph) this.getGraph()).jsonDeleteFromObject(this.getXri().toString(), XDIConstants.XRI_SS_LITERAL.toString());
 	}
 }

@@ -3,6 +3,7 @@ package xdi2.core.impl.wrapped.file;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.Reader;
 import java.io.Writer;
 
@@ -11,20 +12,20 @@ import org.slf4j.LoggerFactory;
 
 import xdi2.core.exceptions.Xdi2RuntimeException;
 import xdi2.core.impl.memory.MemoryGraph;
-import xdi2.core.impl.wrapped.GraphWrapper;
+import xdi2.core.impl.wrapped.WrapperStore;
 import xdi2.core.io.XDIReader;
 import xdi2.core.io.XDIWriter;
 
-public class FileGraphWrapper implements GraphWrapper {
+public class FileWrapperStore implements WrapperStore {
 
-	private static final Logger log = LoggerFactory.getLogger(FileGraphWrapper.class);
+	private static final Logger log = LoggerFactory.getLogger(FileWrapperStore.class);
 
 	private String path;
 	private String mimeType;
 	private XDIReader xdiReader;
 	private XDIWriter xdiWriter;
 
-	public FileGraphWrapper(String path, String mimeType, XDIReader xdiReader, XDIWriter xdiWriter) {
+	public FileWrapperStore(String path, String mimeType, XDIReader xdiReader, XDIWriter xdiWriter) {
 
 		this.path = path;
 		this.mimeType = mimeType;
@@ -120,5 +121,23 @@ public class FileGraphWrapper implements GraphWrapper {
 	public void setXdiWriter(XDIWriter xdiWriter) {
 
 		this.xdiWriter = xdiWriter;
+	}
+
+	/*
+	 * Helper methods
+	 */
+
+	public static void cleanup() {
+
+		File[] files = new File(".").listFiles(new FilenameFilter() {
+
+			@Override
+			public boolean accept(File dir, String name) {
+
+				return name.startsWith("xdi2-graph.") && name.endsWith(".xdi");
+			}
+		});
+
+		for (File file : files) file.delete();
 	}
 }

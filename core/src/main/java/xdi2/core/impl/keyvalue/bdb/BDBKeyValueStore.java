@@ -26,7 +26,7 @@ import com.sleepycat.je.Transaction;
 
 /**
  * This class defines access to a BDB based datastore. It is used by the
- * BDBGraphFactory class to create graphs stored in BDB.
+ * BDBKeyValueGraphFactory class to create graphs stored in BDB.
  * 
  * @author markus
  */
@@ -371,14 +371,35 @@ public class BDBKeyValueStore extends AbstractKeyValueStore implements KeyValueS
 	}
 
 	public String getDatabasePath() {
-	
+
 		return this.databasePath;
 	}
 
 	public String getDatabaseName() {
-	
+
 		return this.databaseName;
 	}
+
+	/*
+	 * Helper methods
+	 */
+
+	public static void cleanup(String databasePath) {
+
+		File path = new File(databasePath);
+
+		if (path.exists()) {
+
+			for (File file : path.listFiles()) {
+
+				file.delete();
+			}
+		}
+	}
+
+	/*
+	 * Helper classes
+	 */
 
 	private class CursorDuplicatesIterator extends ReadOnlyIterator<String> {
 
@@ -390,7 +411,7 @@ public class BDBKeyValueStore extends AbstractKeyValueStore implements KeyValueS
 		private CursorDuplicatesIterator(Transaction transaction, DatabaseEntry dbKey, DatabaseEntry dbValue) {
 
 			super(null);
-			
+
 			this.dbKey = dbKey;
 			this.dbValue = dbValue;
 

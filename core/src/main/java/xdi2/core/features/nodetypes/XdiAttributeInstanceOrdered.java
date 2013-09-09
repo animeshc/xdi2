@@ -12,7 +12,7 @@ import xdi2.core.xri3.XDI3SubSegment;
  * 
  * @author markus
  */
-public final class XdiAttributeInstanceOrdered extends XdiAbstractInstanceOrdered implements XdiAttributeInstance {
+public final class XdiAttributeInstanceOrdered extends XdiAbstractInstanceOrdered<XdiAttributeClass, XdiAttributeInstanceUnordered, XdiAttributeInstanceOrdered, XdiAttributeInstance> implements XdiAttributeInstance {
 
 	private static final long serialVersionUID = 3562576098019686485L;
 
@@ -82,8 +82,7 @@ public final class XdiAttributeInstanceOrdered extends XdiAbstractInstanceOrdere
 
 		XDI3SubSegment valueArcXri = XdiValue.createArcXri();
 
-		ContextNode valueContextNode = this.getContextNode().getContextNode(valueArcXri);
-		if (valueContextNode == null && create) valueContextNode = this.getContextNode().createContextNode(valueArcXri);
+		ContextNode valueContextNode = create ? this.getContextNode().setContextNode(valueArcXri) : this.getContextNode().getContextNode(valueArcXri);
 		if (valueContextNode == null) return null;
 
 		return new XdiValue(valueContextNode);

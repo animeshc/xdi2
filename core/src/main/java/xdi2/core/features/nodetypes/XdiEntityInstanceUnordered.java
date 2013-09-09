@@ -5,13 +5,14 @@ import java.util.Iterator;
 import xdi2.core.ContextNode;
 import xdi2.core.util.iterators.MappingIterator;
 import xdi2.core.util.iterators.NotNullIterator;
+import xdi2.core.xri3.XDI3SubSegment;
 
 /**
  * An XDI unordered entity instance (context function), represented as a context node.
  * 
  * @author markus
  */
-public final class XdiEntityInstanceUnordered extends XdiAbstractInstanceUnordered implements XdiEntityInstance {
+public final class XdiEntityInstanceUnordered extends XdiAbstractInstanceUnordered<XdiEntityClass, XdiEntityInstanceUnordered, XdiEntityInstanceOrdered, XdiEntityInstance> implements XdiEntityInstance {
 
 	private static final long serialVersionUID = 1027868266675630350L;
 
@@ -46,6 +47,15 @@ public final class XdiEntityInstanceUnordered extends XdiAbstractInstanceUnorder
 		if (! isValid(contextNode)) return null;
 
 		return new XdiEntityInstanceUnordered(contextNode);
+	}
+
+	/*
+	 * Methods for XRIs
+	 */
+
+	public static boolean isValidArcXri(XDI3SubSegment arcXri) {
+
+		return XdiAbstractInstanceUnordered.isValidArcXri(arcXri, false);
 	}
 
 	/*

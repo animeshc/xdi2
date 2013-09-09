@@ -65,7 +65,7 @@ public class GenericOperator extends Operator {
 
 		if (policy == null) throw new NullPointerException();
 
-		Relation relation = policy.getContextNode().createRelation(arcXri, targetContextNodeXri);
+		Relation relation = policy.getContextNode().setRelation(arcXri, targetContextNodeXri);
 
 		return fromRelation(relation);
 	}
@@ -76,7 +76,7 @@ public class GenericOperator extends Operator {
 
 		XdiInnerRoot xdiInnerRoot = XdiLocalRoot.findLocalRoot(policy.getContextNode().getGraph()).findInnerRoot(policy.getContextNode().getXri(), arcXri, true);
 
-		xdiInnerRoot.createRelativeStatement(relativeStatement);
+		xdiInnerRoot.setRelativeStatement(relativeStatement);
 
 		return fromRelation(xdiInnerRoot.getPredicateRelation());
 	}

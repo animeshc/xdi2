@@ -45,7 +45,7 @@ public class XDIJSONReader extends AbstractXDIReader {
 	public static final String FILE_EXTENSION = "json";
 	public static final MimeType MIME_TYPE = new MimeType("application/xdi+json");
 
-	private static final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+	private static final Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
 
 	public XDIJSONReader(Properties parameters) {
 
@@ -94,9 +94,7 @@ public class XDIJSONReader extends AbstractXDIReader {
 
 				XDI3Statement statementXri = makeStatement(key + "/\"\"", state);
 
-				if (! (jsonEntryElement instanceof JsonPrimitive)) throw new Xdi2ParseException("JSON object member must be a primitive: " + jsonEntryElement);
-
-				Object literalData = AbstractLiteral.jsonElementToLiteralData((jsonEntryElement));
+				Object literalData = AbstractLiteral.jsonElementToLiteralData(jsonEntryElement);
 
 				// find the root and the base context node of this statement
 

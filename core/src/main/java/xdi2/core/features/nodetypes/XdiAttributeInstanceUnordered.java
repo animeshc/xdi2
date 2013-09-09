@@ -12,7 +12,7 @@ import xdi2.core.xri3.XDI3SubSegment;
  * 
  * @author markus
  */
-public final class XdiAttributeInstanceUnordered extends XdiAbstractInstanceUnordered implements XdiAttributeInstance {
+public final class XdiAttributeInstanceUnordered extends XdiAbstractInstanceUnordered<XdiAttributeClass, XdiAttributeInstanceUnordered, XdiAttributeInstanceOrdered, XdiAttributeInstance> implements XdiAttributeInstance {
 
 	private static final long serialVersionUID = 1027868266675630350L;
 
@@ -50,6 +50,15 @@ public final class XdiAttributeInstanceUnordered extends XdiAbstractInstanceUnor
 	}
 
 	/*
+	 * Methods for XRIs
+	 */
+
+	public static boolean isValidArcXri(XDI3SubSegment arcXri) {
+
+		return XdiAbstractInstanceUnordered.isValidArcXri(arcXri, true);
+	}
+
+	/*
 	 * Instance methods
 	 */
 
@@ -73,8 +82,7 @@ public final class XdiAttributeInstanceUnordered extends XdiAbstractInstanceUnor
 
 		XDI3SubSegment valueArcXri = XdiValue.createArcXri();
 
-		ContextNode valueContextNode = this.getContextNode().getContextNode(valueArcXri);
-		if (valueContextNode == null && create) valueContextNode = this.getContextNode().createContextNode(valueArcXri);
+		ContextNode valueContextNode = create ? this.getContextNode().setContextNode(valueArcXri) : this.getContextNode().getContextNode(valueArcXri);
 		if (valueContextNode == null) return null;
 
 		return new XdiValue(valueContextNode);

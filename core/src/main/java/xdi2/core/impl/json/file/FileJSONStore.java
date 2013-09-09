@@ -21,7 +21,7 @@ import com.google.gson.stream.JsonWriter;
 
 public class FileJSONStore extends AbstractJSONStore implements JSONStore {
 
-	private static final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+	private static final Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
 
 	private String prefix;
 
@@ -43,22 +43,24 @@ public class FileJSONStore extends AbstractJSONStore implements JSONStore {
 	@Override
 	protected JsonObject loadInternal(String id) throws IOException {
 
-		String filename = filename(this.getPrefix(), id);
+		String filename = filename(this.getPrefix(), id) + ".json";
 
 		File file = new File(filename);
-		if (! file.exists()) return new JsonObject();
+		if (! file.exists()) return null;
 
 		FileReader fileReader = new FileReader(file);
 		BufferedReader bufferedReader = new BufferedReader(fileReader);
-		JsonObject jsonGraphObject = gson.getAdapter(JsonObject.class).fromJson(bufferedReader);
+		JsonObject jsonObject = gson.getAdapter(JsonObject.class).fromJson(bufferedReader);
 
-		return jsonGraphObject;
+		fileReader.close();
+
+		return jsonObject;
 	}
 
 	@Override
 	protected void saveInternal(String id, JsonObject object) throws IOException {
 
-		String filename = filename(this.getPrefix(), id);
+		String filename = filename(this.getPrefix(), id) + ".json";
 
 		FileWriter fileWriter = new FileWriter(new File(filename));
 		BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
@@ -69,17 +71,21 @@ public class FileJSONStore extends AbstractJSONStore implements JSONStore {
 		jsonWriter.flush();
 		bufferedWriter.flush();
 		fileWriter.flush();
+
+		fileWriter.close();
 	}
 
 	@Override
 	protected void deleteInternal(final String id) throws IOException {
+
+		final String baseFilename = filename(this.getPrefix(), id);
 
 		File[] files = new File(".").listFiles(new FilenameFilter() {
 
 			@Override
 			public boolean accept(File file, String filename) {
 
-				return filename.startsWith(id);
+				return filename.startsWith(baseFilename) && filename.endsWith(".json");
 			}
 		});
 
@@ -112,8 +118,6 @@ public class FileJSONStore extends AbstractJSONStore implements JSONStore {
 
 			throw new Xdi2RuntimeException(ex.getMessage(), ex);
 		}
-
-		buffer.append(".json");
 
 		return buffer.toString();
 	}

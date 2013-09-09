@@ -13,7 +13,7 @@ import xdi2.core.xri3.XDI3SubSegment;
  * 
  * @author markus
  */
-public final class XdiEntityClass extends XdiAbstractClass<XdiEntityInstanceUnordered, XdiEntityInstanceOrdered, XdiEntityInstance> {
+public final class XdiEntityClass extends XdiAbstractClass<XdiEntityClass, XdiEntityInstanceUnordered, XdiEntityInstanceOrdered, XdiEntityInstance> implements XdiClass<XdiEntityClass, XdiEntityInstanceUnordered, XdiEntityInstanceOrdered, XdiEntityInstance> {
 
 	private static final long serialVersionUID = -8518618921427437445L;
 
@@ -33,7 +33,9 @@ public final class XdiEntityClass extends XdiAbstractClass<XdiEntityInstanceUnor
 	 */
 	public static boolean isValid(ContextNode contextNode) {
 
-		return isValidArcXri(contextNode.getArcXri());
+		return 
+				isValidArcXri(contextNode.getArcXri()) &&
+				( ! XdiAttributeClass.isValid(contextNode.getContextNode()) && ! XdiAttributeInstanceUnordered.isValid(contextNode.getContextNode()) && ! XdiAttributeInstanceOrdered.isValid(contextNode.getContextNode()) );
 	}
 
 	/**
@@ -67,10 +69,7 @@ public final class XdiEntityClass extends XdiAbstractClass<XdiEntityInstanceUnor
 		if (XDIConstants.CS_PLUS.equals(arcXri.getCs()) || XDIConstants.CS_DOLLAR.equals(arcXri.getCs())) {
 
 			if (! arcXri.hasLiteral() && ! arcXri.hasXRef()) return false;
-		} else if (XDIConstants.CS_EQUALS.equals(arcXri.getCs()) || XDIConstants.CS_AT.equals(arcXri.getCs())) {
-
-			if (arcXri.hasLiteral() || arcXri.hasXRef()) return false;
-		} else if (XDIConstants.CS_STAR.equals(arcXri.getCs()) || XDIConstants.CS_BANG.equals(arcXri.getCs())) {
+		} else if (XDIConstants.CS_EQUALS.equals(arcXri.getCs()) || XDIConstants.CS_AT.equals(arcXri.getCs()) || XDIConstants.CS_STAR.equals(arcXri.getCs()) || XDIConstants.CS_BANG.equals(arcXri.getCs())) {
 
 			if (arcXri.hasLiteral() || arcXri.hasXRef()) return false;
 		} else {

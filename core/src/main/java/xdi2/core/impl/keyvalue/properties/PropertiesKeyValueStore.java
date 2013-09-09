@@ -3,6 +3,7 @@ package xdi2.core.impl.keyvalue.properties;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -24,7 +25,7 @@ import xdi2.core.impl.keyvalue.KeyValueStore;
 
 /**
  * This class defines access to a properties file. It is used by the
- * PropertiesGraphFactory class to create graphs stored in properties files.
+ * PropertiesKeyValueGraphFactory class to create graphs stored in properties files.
  * 
  * @author markus
  */
@@ -339,9 +340,9 @@ public class PropertiesKeyValueStore extends AbstractKeyValueStore implements Ke
 
 		if (log.isDebugEnabled()) log.debug("Rolled back transaction...");
 	}
-	
+
 	public String getPath() {
-	
+
 		return this.path;
 	}
 
@@ -370,7 +371,7 @@ public class PropertiesKeyValueStore extends AbstractKeyValueStore implements Ke
 
 			File file = new File(this.path);
 			if (! file.exists()) file.createNewFile();
-			
+
 			Writer writer = new FileWriter(file);
 
 			this.properties.store(writer, null);
@@ -387,7 +388,7 @@ public class PropertiesKeyValueStore extends AbstractKeyValueStore implements Ke
 
 		try {
 
-			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			MessageDigest digest = MessageDigest.getInstance("SHA-512");
 			digest.reset();
 			digest.update(str.getBytes());
 			hash = new String(Base64.encodeBase64(digest.digest()), "UTF-8");
@@ -397,5 +398,23 @@ public class PropertiesKeyValueStore extends AbstractKeyValueStore implements Ke
 		}
 
 		return hash;
+	}
+
+	/*
+	 * Helper methods
+	 */
+
+	public static void cleanup() {
+
+		File[] files = new File(".").listFiles(new FilenameFilter() {
+
+			@Override
+			public boolean accept(File dir, String name) {
+
+				return name.startsWith("xdi2-properties-keyvalue-graph.") && name.endsWith(".properties");
+			}
+		});
+
+		for (File file : files) file.delete();
 	}
 }

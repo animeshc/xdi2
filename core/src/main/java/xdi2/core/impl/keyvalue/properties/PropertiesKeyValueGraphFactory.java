@@ -11,20 +11,14 @@ import xdi2.core.impl.keyvalue.KeyValueStore;
  * 
  * @author markus
  */
-public class PropertiesGraphFactory extends AbstractKeyValueGraphFactory implements GraphFactory {
+public class PropertiesKeyValueGraphFactory extends AbstractKeyValueGraphFactory implements GraphFactory {
 
 	public static final boolean DEFAULT_SUPPORT_GET_CONTEXTNODES = true; 
 	public static final boolean DEFAULT_SUPPORT_GET_RELATIONS = true; 
 
-	public static final String DEFAULT_PROPERTIES_PATH = "xdi2-graph.properties";
-
-	private String path;
-
-	public PropertiesGraphFactory() {
+	public PropertiesKeyValueGraphFactory() {
 
 		super(DEFAULT_SUPPORT_GET_CONTEXTNODES, DEFAULT_SUPPORT_GET_RELATIONS);
-
-		this.path = DEFAULT_PROPERTIES_PATH;
 	}
 
 	@Override
@@ -32,30 +26,17 @@ public class PropertiesGraphFactory extends AbstractKeyValueGraphFactory impleme
 
 		// check identifier
 
-		if (identifier != null) {
-
-			this.setPath("xdi2-graph." + identifier + ".properties");
-		}
+		String path = "xdi2-properties-keyvalue-graph." + identifier + ".properties";
 
 		// open store
 
 		KeyValueStore keyValueStore;
 
-		keyValueStore = new PropertiesKeyValueStore(this.path);
+		keyValueStore = new PropertiesKeyValueStore(path);
 		keyValueStore.init();
 
 		// done
 
 		return keyValueStore;
-	}
-
-	public String getPath() {
-
-		return this.path;
-	}
-
-	public void setPath(String path) {
-
-		this.path = path;
 	}
 }

@@ -3,13 +3,10 @@ package xdi2.core.features.nodetypes;
 import xdi2.core.ContextNode;
 import xdi2.core.Graph;
 import xdi2.core.Relation;
-import xdi2.core.constants.XDIConstants;
 import xdi2.core.constants.XDIDictionaryConstants;
-import xdi2.core.util.iterators.MappingIterator;
-import xdi2.core.util.iterators.NotNullIterator;
+import xdi2.core.features.nodetypes.XdiPeerRoot.MappingContextNodePeerRootIterator;
 import xdi2.core.util.iterators.ReadOnlyIterator;
 import xdi2.core.xri3.XDI3Segment;
-import xdi2.core.xri3.XDI3SubSegment;
 
 /**
  * An XDI local root, represented as a context node.
@@ -79,7 +76,10 @@ public class XdiLocalRoot extends XdiAbstractRoot {
 		ContextNode localRootContextNode = this.getContextNode();
 		ContextNode selfPeerRootContextNode = selfPeerRoot.getContextNode();
 
+		localRootContextNode.delRelations(XDIDictionaryConstants.XRI_S_IS_REF);
 		localRootContextNode.setRelation(XDIDictionaryConstants.XRI_S_IS_REF, selfPeerRootContextNode);
+
+		selfPeerRootContextNode.delRelations(XDIDictionaryConstants.XRI_S_REF);
 		selfPeerRootContextNode.setRelation(XDIDictionaryConstants.XRI_S_REF, localRootContextNode);
 
 		return selfPeerRoot;
@@ -95,36 +95,6 @@ public class XdiLocalRoot extends XdiAbstractRoot {
 
 	public ReadOnlyIterator<XdiPeerRoot> getPeerRoots() {
 
-		return new NotNullIterator<XdiPeerRoot> (new MappingIterator<ContextNode, XdiPeerRoot> (this.getContextNode().getContextNodes()) {
-
-			@Override
-			public XdiPeerRoot map(ContextNode contextNode) {
-
-				return XdiPeerRoot.fromContextNode(contextNode);
-			}
-		});
-	}
-
-	/*
-	 * Methods for XDI local root XRIs
-	 */
-
-	/**
-	 * Returns the local root XRI.
-	 * @return The local root XRI.
-	 */
-	public static XDI3SubSegment createLocalRootXri() {
-
-		return XDIConstants.XRI_SS_ROOT;
-	}
-
-	/**
-	 * Checks if a given XRI is a local root XRI.
-	 * @param xri A local root XRI.
-	 * @return True, if the XRI is a local root XRI.
-	 */
-	public static boolean isLocalRootXri(XDI3SubSegment xri) {
-
-		return XDIConstants.XRI_SS_ROOT.equals(xri);
+		return new MappingContextNodePeerRootIterator(this.getContextNode().getContextNodes());
 	}
 }
