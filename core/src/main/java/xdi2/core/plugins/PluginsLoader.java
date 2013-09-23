@@ -38,12 +38,15 @@ public class PluginsLoader {
 
 		for (File file : files) {
 
-			if (log.isDebugEnabled()) log.debug("Loading XDI2 plugin: " + file.getAbsolutePath());
+			if (log.isInfoEnabled()) log.info("Loading XDI2 plugin: " + file.getAbsolutePath());
 		}
 
-		ClassLoader classLoader = new JarClassLoader(files, Thread.currentThread().getContextClassLoader());
+		Thread currentThread = Thread.currentThread();
 
-		Thread.currentThread().setContextClassLoader(classLoader);
+		ClassLoader classLoader = new PluginClassLoader(files, currentThread.getContextClassLoader());
+		currentThread.setContextClassLoader(classLoader);
+
+		if (log.isInfoEnabled()) log.info("Set classloader for thread " + currentThread.getName() + ": " + classLoader.getClass().getCanonicalName());
 	}
 
 	public static void loadPlugins() throws IOException {

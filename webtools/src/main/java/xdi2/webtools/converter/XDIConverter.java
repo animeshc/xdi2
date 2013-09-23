@@ -104,6 +104,8 @@ public class XDIConverter extends javax.servlet.http.HttpServlet implements java
 		String writePretty = request.getParameter("writePretty");
 		String from = request.getParameter("from");
 		String input = request.getParameter("input");
+		String submit = request.getParameter("submit");
+		String rawoutput = "";
 		String output = "";
 		String stats = "-1";
 		String error = null;
@@ -114,6 +116,7 @@ public class XDIConverter extends javax.servlet.http.HttpServlet implements java
 		xdiWriterParameters.setProperty(XDIWriterRegistry.PARAMETER_ORDERED, "on".equals(writeOrdered) ? "1" : "0");
 		xdiWriterParameters.setProperty(XDIWriterRegistry.PARAMETER_INNER, "on".equals(writeInner) ? "1" : "0");
 		xdiWriterParameters.setProperty(XDIWriterRegistry.PARAMETER_PRETTY, "on".equals(writePretty) ? "1" : "0");
+		xdiWriterParameters.setProperty(XDIWriterRegistry.PARAMETER_HTML, "Html!".equals(submit) ? "1" : "0");
 
 		XDIReader xdiReader = XDIReaderRegistry.forFormat(from, null);
 		XDIWriter xdiResultWriter = XDIWriterRegistry.forFormat(resultFormat, xdiWriterParameters);
@@ -127,6 +130,7 @@ public class XDIConverter extends javax.servlet.http.HttpServlet implements java
 			xdiReader.read(graph, reader);
 			xdiResultWriter.write(graph, writer);
 
+			rawoutput = writer.getBuffer().toString();
 			output = StringEscapeUtils.escapeHtml(writer.getBuffer().toString());
 		} catch (Exception ex) {
 
@@ -145,6 +149,13 @@ public class XDIConverter extends javax.servlet.http.HttpServlet implements java
 		graph.close();
 
 		// display results
+
+		if ("Html!".equals(submit)) {
+
+			response.setContentType("text/html");
+			response.getWriter().append(rawoutput);
+			return;
+		}
 
 		request.setAttribute("sampleInputs", Integer.valueOf(sampleInputs.size()));
 		request.setAttribute("resultFormat", resultFormat);

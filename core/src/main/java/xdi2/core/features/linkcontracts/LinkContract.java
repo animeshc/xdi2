@@ -7,14 +7,15 @@ import xdi2.core.ContextNode;
 import xdi2.core.constants.XDILinkContractConstants;
 import xdi2.core.constants.XDIPolicyConstants;
 import xdi2.core.features.linkcontracts.policy.PolicyRoot;
+import xdi2.core.features.nodetypes.XdiAbstractContext;
 import xdi2.core.features.nodetypes.XdiEntity;
-import xdi2.core.features.nodetypes.XdiEntityInstance;
+import xdi2.core.features.nodetypes.XdiEntityMember;
 import xdi2.core.features.nodetypes.XdiEntitySingleton;
 import xdi2.core.util.iterators.MappingRelationTargetContextNodeIterator;
 import xdi2.core.xri3.XDI3Segment;
 
 /**
- * An XDI link contract, represented as a context node.
+ * An XDI link contract, represented as an XDI entity.
  * 
  * @author markus
  */
@@ -42,10 +43,10 @@ public final class LinkContract implements Serializable, Comparable<LinkContract
 
 		if (xdiEntity instanceof XdiEntitySingleton) {
 
-			return ((XdiEntitySingleton) xdiEntity).getBaseArcXri().equals(XDILinkContractConstants.XRI_SS_DO);
-		} else if (xdiEntity instanceof XdiEntityInstance) {
+			return ((XdiEntitySingleton) xdiEntity).getBaseArcXri().equals(XdiAbstractContext.getBaseArcXri(XDILinkContractConstants.XRI_SS_DO));
+		} else if (xdiEntity instanceof XdiEntityMember) {
 
-			return ((XdiEntityInstance) xdiEntity).getXdiClass().getBaseArcXri().equals(XDILinkContractConstants.XRI_SS_DO);
+			return ((XdiEntityMember) xdiEntity).getXdiCollection().getBaseArcXri().equals(XdiAbstractContext.getBaseArcXri(XDILinkContractConstants.XRI_SS_DO));
 		} else {
 
 			return false;

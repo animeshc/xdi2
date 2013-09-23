@@ -13,13 +13,13 @@ import xdi2.core.xri3.XDI3SubSegment;
  * 
  * @author markus
  */
-public final class XdiAttributeClass extends XdiAbstractClass<XdiAttributeClass, XdiAttributeInstanceUnordered, XdiAttributeInstanceOrdered, XdiAttributeInstance> implements XdiClass<XdiAttributeClass, XdiAttributeInstanceUnordered, XdiAttributeInstanceOrdered, XdiAttributeInstance> {
+public final class XdiAttributeCollection extends XdiAbstractCollection<XdiAttributeCollection, XdiAttributeMemberUnordered, XdiAttributeMemberOrdered, XdiAttributeMember> implements XdiCollection<XdiAttributeCollection, XdiAttributeMemberUnordered, XdiAttributeMemberOrdered, XdiAttributeMember> {
 
 	private static final long serialVersionUID = -8518618921427437445L;
 
-	protected XdiAttributeClass(ContextNode contextNode) {
+	protected XdiAttributeCollection(ContextNode contextNode) {
 
-		super(contextNode, XdiAttributeInstanceUnordered.class, XdiAttributeInstanceOrdered.class, XdiAttributeInstance.class);
+		super(contextNode, XdiAttributeMemberUnordered.class, XdiAttributeMemberOrdered.class, XdiAttributeMember.class);
 	}
 
 	/*
@@ -41,11 +41,11 @@ public final class XdiAttributeClass extends XdiAbstractClass<XdiAttributeClass,
 	 * @param contextNode The context node that is an XDI attribute class.
 	 * @return The XDI attribute class.
 	 */
-	public static XdiAttributeClass fromContextNode(ContextNode contextNode) {
+	public static XdiAttributeCollection fromContextNode(ContextNode contextNode) {
 
 		if (! isValid(contextNode)) return null;
 
-		return new XdiAttributeClass(contextNode);
+		return new XdiAttributeCollection(contextNode);
 	}
 
 	/*
@@ -79,16 +79,16 @@ public final class XdiAttributeClass extends XdiAbstractClass<XdiAttributeClass,
 	 * Helper classes
 	 */
 
-	public static class MappingContextNodeXdiAttributeClassIterator extends NotNullIterator<XdiAttributeClass> {
+	public static class MappingContextNodeXdiAttributeCollectionIterator extends NotNullIterator<XdiAttributeCollection> {
 
-		public MappingContextNodeXdiAttributeClassIterator(Iterator<ContextNode> contextNodes) {
+		public MappingContextNodeXdiAttributeCollectionIterator(Iterator<ContextNode> contextNodes) {
 
-			super(new MappingIterator<ContextNode, XdiAttributeClass> (contextNodes) {
+			super(new MappingIterator<ContextNode, XdiAttributeCollection> (contextNodes) {
 
 				@Override
-				public XdiAttributeClass map(ContextNode contextNode) {
+				public XdiAttributeCollection map(ContextNode contextNode) {
 
-					return XdiAttributeClass.fromContextNode(contextNode);
+					return XdiAttributeCollection.fromContextNode(contextNode);
 				}
 			});
 		}
