@@ -6,7 +6,7 @@ import xdi2.core.ContextNode;
 import xdi2.core.util.iterators.MappingIterator;
 import xdi2.core.util.iterators.NotNullIterator;
 
-public abstract class XdiAbstractAttribute extends XdiAbstractSubGraph implements XdiAttribute {
+public abstract class XdiAbstractAttribute extends XdiAbstractSubGraph<XdiAttribute> implements XdiAttribute {
 
 	private static final long serialVersionUID = 7648046902369626744L;
 
@@ -25,6 +25,8 @@ public abstract class XdiAbstractAttribute extends XdiAbstractSubGraph implement
 	 * @return True if the context node is a valid XDI attribute.
 	 */
 	public static boolean isValid(ContextNode contextNode) {
+
+		if (contextNode == null) return false;
 
 		return XdiAttributeSingleton.isValid(contextNode) || 
 				XdiAttributeMemberUnordered.isValid(contextNode) ||

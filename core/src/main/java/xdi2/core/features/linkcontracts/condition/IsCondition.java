@@ -1,13 +1,7 @@
 package xdi2.core.features.linkcontracts.condition;
 
-import java.util.Iterator;
-
-import xdi2.core.ContextNode;
 import xdi2.core.constants.XDIPolicyConstants;
-import xdi2.core.features.equivalence.Equivalence;
 import xdi2.core.features.linkcontracts.evaluation.PolicyEvaluationContext;
-import xdi2.core.util.iterators.EmptyIterator;
-import xdi2.core.util.iterators.IteratorContains;
 import xdi2.core.xri3.XDI3Segment;
 import xdi2.core.xri3.XDI3Statement;
 
@@ -69,18 +63,12 @@ public class IsCondition extends Condition {
 
 		// check if subject XRI and object XRI are the same
 
-		XDI3Segment subject = policyEvaluationContext.getContextNodeXri(this.getStatement().getSubject());
-		XDI3Segment object = policyEvaluationContext.getContextNodeXri((XDI3Segment) this.getStatement().getObject());
+		XDI3Segment subject = policyEvaluationContext.getContextNodeXri(this.getStatementXri().getSubject());
+		XDI3Segment object = policyEvaluationContext.getContextNodeXri((XDI3Segment) this.getStatementXri().getObject());
 
-		if (subject != null && subject.equals(object)) return Boolean.TRUE;
-
-		// check if the statement exists
-
-		ContextNode subjectContextNode = policyEvaluationContext.getContextNode(this.getStatement().getSubject());
-		ContextNode objectContextNode = policyEvaluationContext.getContextNode((XDI3Segment) this.getStatement().getObject());
-
-		Iterator<ContextNode> equivalenceContextNodes = subjectContextNode == null ? new EmptyIterator<ContextNode> () : Equivalence.getIdentityContextNodes(subjectContextNode);
-		if (new IteratorContains<ContextNode> (equivalenceContextNodes, objectContextNode).contains()) return Boolean.TRUE;
+		if (subject == null || object == null) return Boolean.FALSE;
+		
+		if (subject.equals(object)) return Boolean.TRUE;
 
 		// done
 

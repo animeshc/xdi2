@@ -36,12 +36,13 @@
 		<% String writePretty = (String) request.getAttribute("writePretty"); if (writePretty == null) writePretty = ""; %>
 		<% String key = (String) request.getAttribute("key"); if (key == null) key = ""; %>
 		<% String address = (String) request.getAttribute("address"); if (address == null) address = ""; %>
+		<% String signatureAlgorithm = (String) request.getAttribute("signatureAlgorithm"); if (signatureAlgorithm == null) signatureAlgorithm = ""; %>
+		<% String hmacAlgorithm = (String) request.getAttribute("hmacAlgorithm"); if (hmacAlgorithm == null) hmacAlgorithm = ""; %>
 
 		Key: 
-		<input type="text" name="key" size="80" value="<%= key %>">
+		<input type="text" name="key" size="30" value="<%= key %>">
 		Address: 
 		<input type="text" name="address" size="10" value="<%= address %>">
-		&nbsp;&nbsp;&nbsp;&nbsp;<a href="XDISignerHelp.jsp">What can I do here?</a><br>
 
 		Result Format:
 		<select name="resultFormat">
@@ -58,12 +59,17 @@
 
 		<input name="writeInner" type="checkbox" <%= writeInner.equals("on") ? "checked" : "" %>>inner=1
 
-		<input name="writePretty" type="checkbox" <%= writePretty.equals("on") ? "checked" : "" %>>pretty=1
+		<input name="writePretty" type="checkbox" <%= writePretty.equals("on") ? "checked" : "" %>>pretty=1<br>
 
+		RSA:&nbsp;
+		<input type="text" name="signatureAlgorithm" size="20" value="<%= signatureAlgorithm %>">
 		<input type="submit" name="submit" value="Create RSA Signature!">
 		<input type="submit" name="submit" value="Validate RSA Signature!">
+		&nbsp;AES:&nbsp;
+		<input type="text" name="hmacAlgorithm" size="20" value="<%= hmacAlgorithm %>">
 		<input type="submit" name="submit" value="Create AES HMAC!">
 		<input type="submit" name="submit" value="Validate AES HMAC!">
+		&nbsp;&nbsp;&nbsp;&nbsp;<a href="XDISignerHelp.jsp">What can I do here?</a>
 
 	</form>
 

@@ -13,7 +13,7 @@ import xdi2.core.xri3.XDI3SubSegment;
  * 
  * @author markus
  */
-public final class XdiVariable extends XdiAbstractSubGraph {
+public final class XdiVariable extends XdiAbstractSubGraph<XdiVariable> {
 
 	private static final long serialVersionUID = -5443590668167159237L;
 
@@ -32,6 +32,8 @@ public final class XdiVariable extends XdiAbstractSubGraph {
 	 * @return True if the context node is a valid XDI variable.
 	 */
 	public static boolean isValid(ContextNode contextNode) {
+
+		if (contextNode == null) return false;
 
 		return isVariableArcXri(contextNode.getArcXri());
 	}

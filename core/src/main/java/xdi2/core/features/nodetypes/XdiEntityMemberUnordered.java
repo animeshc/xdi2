@@ -12,7 +12,7 @@ import xdi2.core.xri3.XDI3SubSegment;
  * 
  * @author markus
  */
-public final class XdiEntityMemberUnordered extends XdiAbstractMemberUnordered<XdiEntityCollection, XdiEntityMemberUnordered, XdiEntityMemberOrdered, XdiEntityMember> implements XdiEntityMember {
+public final class XdiEntityMemberUnordered extends XdiAbstractMemberUnordered<XdiEntity, XdiEntityCollection, XdiEntityMemberUnordered, XdiEntityMemberOrdered, XdiEntityMember> implements XdiEntityMember {
 
 	private static final long serialVersionUID = 1027868266675630350L;
 
@@ -31,6 +31,8 @@ public final class XdiEntityMemberUnordered extends XdiAbstractMemberUnordered<X
 	 * @return True if the context node is a valid XDI unordered entity instance.
 	 */
 	public static boolean isValid(ContextNode contextNode) {
+
+		if (contextNode == null) return false;
 
 		return
 				isValidArcXri(contextNode.getArcXri(), false) &&

@@ -1,85 +1,183 @@
 package xdi2.discovery;
 
 import java.io.Serializable;
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Map;
 
-import xdi2.core.ContextNode;
+import org.apache.commons.codec.binary.Base64;
+
+import xdi2.client.exceptions.Xdi2ClientException;
 import xdi2.core.Graph;
 import xdi2.core.Literal;
-import xdi2.core.features.equivalence.Equivalence;
-import xdi2.core.features.nodetypes.XdiAbstractAttribute;
+import xdi2.core.constants.XDIAuthenticationConstants;
+import xdi2.core.constants.XDIConstants;
+import xdi2.core.features.nodetypes.XdiAttribute;
+import xdi2.core.features.nodetypes.XdiAttributeSingleton;
+import xdi2.core.features.nodetypes.XdiLocalRoot;
 import xdi2.core.features.nodetypes.XdiPeerRoot;
+import xdi2.core.features.nodetypes.XdiRoot;
 import xdi2.core.features.nodetypes.XdiValue;
 import xdi2.core.util.XDI3Util;
 import xdi2.core.xri3.XDI3Segment;
-import xdi2.core.xri3.XDI3SubSegment;
+import xdi2.messaging.MessageEnvelope;
 import xdi2.messaging.MessageResult;
 
 public class XDIDiscoveryResult implements Serializable {
 
 	private static final long serialVersionUID = -1141807747864855392L;
 
-	private XDI3Segment xri;
-	private MessageResult messageResult;
 	private XDI3Segment cloudNumber;
-	private String endpointUri;
+	private String xdiEndpointUri;
+	private PublicKey publicKey;
+	private Map<String, String> services;
 
-	private XDIDiscoveryResult(XDI3Segment xri, MessageResult messageResult, XDI3Segment cloudNumber, String endpointUri) {
+	private MessageEnvelope messageEnvelope;
+	private MessageResult messageResult;
 
-		this.xri = xri;
-		this.messageResult = messageResult;
-		this.cloudNumber = cloudNumber;
-		this.endpointUri = endpointUri;
+	public XDIDiscoveryResult() {
+
+		this.cloudNumber = null;
+		this.xdiEndpointUri = null;
+		this.publicKey = null;
+		this.services = null;
+
+		this.messageEnvelope = null;
+		this.messageResult = null;
 	}
 
-	/**
-	 * Parses a XDIDiscoveryResult from an XDI2 message result.
-	 * @return The XDIDiscoveryResult.
-	 */
-	public static XDIDiscoveryResult fromXriAndMessageResult(XDI3Segment xri, MessageResult messageResult) {
+	void initFromRegistryMessageResult(MessageEnvelope registryMessageEnvelope, MessageResult registryMessageResult, XDI3Segment query) throws Xdi2ClientException {
 
-		Graph graph = messageResult.getGraph();
+		this.messageEnvelope = registryMessageEnvelope;
+		this.messageResult = registryMessageResult;
 
-		XDI3SubSegment peerRootArcXri = XdiPeerRoot.createPeerRootArcXri(xri);
+		// look into registry message result
 
-		// find Cloud Number
+		Graph registryMessageResultGraph = registryMessageResult.getGraph();
 
-		ContextNode contextNode = graph.getDeepContextNode(XDI3Segment.fromComponent(peerRootArcXri));
-		ContextNode referenceContextNode = contextNode == null ? null : Equivalence.getReferenceContextNode(contextNode);
+		// find cloud number
 
-		XDI3SubSegment cloudNumberPeerRootArcXri = referenceContextNode == null ? null : referenceContextNode.getXri().getFirstSubSegment();
-		XDI3Segment cloudNumber = cloudNumberPeerRootArcXri == null ? null : XdiPeerRoot.getXriOfPeerRootArcXri(cloudNumberPeerRootArcXri);
+		XdiRoot xdiRoot = XdiLocalRoot.findLocalRoot(registryMessageResultGraph).findPeerRoot(query, false);
+		if (xdiRoot == null) return;
 
-		if (cloudNumber == null && XDI3Util.isCloudNumber(xri)) cloudNumber = xri;
+		if (xdiRoot instanceof XdiPeerRoot && XDI3Util.isCloudNumber(((XdiPeerRoot) xdiRoot).getXriOfPeerRoot())) {
 
-		// find URI
-
-		ContextNode endpointUriContextNode;
-
-		if (cloudNumberPeerRootArcXri != null) {
-
-			endpointUriContextNode = graph.getDeepContextNode(XDI3Segment.create(cloudNumberPeerRootArcXri + "$xdi<$uri>"));
-		} else {
-
-			endpointUriContextNode = graph.getDeepContextNode(XDI3Segment.create(peerRootArcXri + "$xdi<$uri>"));
+			this.cloudNumber = ((XdiPeerRoot) xdiRoot).getXriOfPeerRoot();
 		}
 
-		ContextNode referenceEndpointUriContextNode = endpointUriContextNode == null ? null : Equivalence.getReferenceContextNode(endpointUriContextNode);
-		XdiValue endpointUriXdiValue = null;
+		xdiRoot = xdiRoot == null ? null : xdiRoot.dereference();
 
-		if (referenceEndpointUriContextNode != null) endpointUriXdiValue = XdiAbstractAttribute.fromContextNode(referenceEndpointUriContextNode).getXdiValue(false);
-		else if (endpointUriContextNode != null) endpointUriXdiValue = XdiAbstractAttribute.fromContextNode(endpointUriContextNode).getXdiValue(false);
+		if (xdiRoot instanceof XdiPeerRoot && XDI3Util.isCloudNumber(((XdiPeerRoot) xdiRoot).getXriOfPeerRoot())) {
 
-		Literal endpointUriLiteral = endpointUriXdiValue == null ? null : endpointUriXdiValue.getContextNode().getLiteral();
-		String endpointUri = endpointUriLiteral == null ? null : endpointUriLiteral.getLiteralDataString();
+			this.cloudNumber = ((XdiPeerRoot) xdiRoot).getXriOfPeerRoot();
+		}
+
+		// find XDI endpoint uri
+
+		XdiAttribute xdiEndpointUriXdiAttribute = XdiAttributeSingleton.fromContextNode(xdiRoot.getContextNode().getDeepContextNode(XDIConstants.XRI_S_XDI_URI));
+		xdiEndpointUriXdiAttribute = xdiEndpointUriXdiAttribute == null ? null : xdiEndpointUriXdiAttribute.dereference();
+
+		XdiValue xdiEndpointUriXdiValue = xdiEndpointUriXdiAttribute == null ? null : xdiEndpointUriXdiAttribute.getXdiValue(false);
+		xdiEndpointUriXdiValue = xdiEndpointUriXdiValue == null ? null : xdiEndpointUriXdiValue.dereference();
+
+		Literal xdiEndpointUriLiteral = xdiEndpointUriXdiValue == null ? null : xdiEndpointUriXdiValue.getContextNode().getLiteral();
+		this.xdiEndpointUri = xdiEndpointUriLiteral == null ? null : xdiEndpointUriLiteral.getLiteralDataString();
+	}
+
+	void initFromAuthorityMessageResult(MessageEnvelope authorityMessageEnvelope, MessageResult authorityMessageResult) throws Xdi2ClientException {
+
+		this.messageEnvelope = authorityMessageEnvelope;
+		this.messageResult = authorityMessageResult;
+
+		// look into authority message result
+
+		Graph authorityMessageResultGraph = authorityMessageResult.getGraph();
+
+		// find cloud number
+
+		XdiRoot xdiRoot = XdiLocalRoot.findLocalRoot(authorityMessageResultGraph).getSelfPeerRoot();
+		if (xdiRoot == null) return;
+
+		if (xdiRoot instanceof XdiPeerRoot && XDI3Util.isCloudNumber(((XdiPeerRoot) xdiRoot).getXriOfPeerRoot())) {
+
+			this.cloudNumber = ((XdiPeerRoot) xdiRoot).getXriOfPeerRoot();
+		}
+
+		xdiRoot = xdiRoot == null ? null : xdiRoot.dereference();
+
+		if (xdiRoot instanceof XdiPeerRoot && XDI3Util.isCloudNumber(((XdiPeerRoot) xdiRoot).getXriOfPeerRoot())) {
+
+			this.cloudNumber = ((XdiPeerRoot) xdiRoot).getXriOfPeerRoot();
+		}
+
+		// find public key
+
+		XdiAttribute publicKeyXdiAttribute = XdiAttributeSingleton.fromContextNode(xdiRoot.getContextNode().getDeepContextNode(XDIAuthenticationConstants.XRI_S_PUBLIC_KEY));
+		publicKeyXdiAttribute = publicKeyXdiAttribute == null ? null : publicKeyXdiAttribute.dereference();
+
+		XdiValue publicKeyXdiValue = publicKeyXdiAttribute == null ? null : publicKeyXdiAttribute.getXdiValue(false);
+		publicKeyXdiValue = publicKeyXdiValue == null ? null : publicKeyXdiValue.dereference();
+
+		Literal publicKeyLiteral = publicKeyXdiValue == null ? null : publicKeyXdiValue.getContextNode().getLiteral();
+		this.publicKey = publicKeyLiteral == null ? null : publicKeyFromPublicKeyString(publicKeyLiteral.getLiteralDataString());
+	}
+
+	void initFromException(Xdi2ClientException ex) {
 
 		// done
 
-		return new XDIDiscoveryResult(xri, messageResult, cloudNumber, endpointUri);
+		this.messageResult = ex.getErrorMessageResult();
 	}
 
-	public XDI3Segment getXri() {
+	/*
+	 * Helper methods
+	 */
 
-		return this.xri;
+	private static PublicKey publicKeyFromPublicKeyString(String publicKeyString) throws Xdi2ClientException {
+
+		if (publicKeyString == null) return null;
+
+		try {
+
+			X509EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.decodeBase64(publicKeyString));
+			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+
+			return keyFactory.generatePublic(keySpec);
+		} catch (GeneralSecurityException ex) {
+
+			throw new Xdi2ClientException("Invalid RSA public key " + publicKeyString + ": " + ex.getMessage(), ex, null);
+		}
+	}
+
+	/*
+	 * Getters
+	 */
+
+	public XDI3Segment getCloudNumber() {
+
+		return this.cloudNumber;
+	}
+
+	public String getXdiEndpointUri() {
+
+		return this.xdiEndpointUri;
+	}
+
+	public PublicKey getPublicKey() {
+
+		return this.publicKey;
+	}
+
+	public Map<String, String> getServices() {
+
+		return this.services;
+	}
+
+	public MessageEnvelope getMessageEnvelope() {
+
+		return this.messageEnvelope;
 	}
 
 	public MessageResult getMessageResult() {
@@ -87,19 +185,13 @@ public class XDIDiscoveryResult implements Serializable {
 		return this.messageResult;
 	}
 
-	public XDI3Segment getCloudNumber() {
-
-		return this.cloudNumber;
-	}
-
-	public String getEndpointUri() {
-
-		return this.endpointUri;
-	}
+	/*
+	 * Object methods
+	 */
 
 	@Override
 	public String toString() {
 
-		return this.cloudNumber + " (" + this.endpointUri + ")";
+		return this.cloudNumber + " (" + this.xdiEndpointUri + ")";
 	}
 }

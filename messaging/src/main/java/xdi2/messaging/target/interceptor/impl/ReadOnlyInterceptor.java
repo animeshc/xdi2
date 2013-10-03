@@ -1,5 +1,6 @@
 package xdi2.messaging.target.interceptor.impl;
 
+import xdi2.core.util.XDI3Util;
 import xdi2.core.xri3.XDI3Segment;
 import xdi2.core.xri3.XDI3Statement;
 import xdi2.messaging.MessageResult;
@@ -67,27 +68,15 @@ public class ReadOnlyInterceptor extends AbstractInterceptor implements TargetIn
 
 	private void checkReadOnly(Operation operation, XDI3Segment contextNodeXri, ExecutionContext executionContext) throws Xdi2MessagingException {
 
-		if (operation.isReadOperation()) return;
+		if (operation.isReadOnlyOperation()) return;
 
 		for (XDI3Segment readOnlyAddress : this.readOnlyAddresses) {
 
-			if (readOnlyAddress == null || startsWith(contextNodeXri, readOnlyAddress)) {
+			if (readOnlyAddress == null || XDI3Util.startsWith(contextNodeXri, readOnlyAddress) != null) {
 
 				throw new Xdi2MessagingException("This address is read-only: " + contextNodeXri, null, executionContext);
 			}
 		}
-	}
-
-	private static boolean startsWith(XDI3Segment whole, XDI3Segment part) {
-
-		if (part.getNumSubSegments() > whole.getNumSubSegments()) return false;
-
-		for (int i=0; i<part.getNumSubSegments(); i++) {
-
-			if (! part.getSubSegment(i).equals(whole.getSubSegment(i))) return false;
-		}
-
-		return true;
 	}
 
 	public XDI3Segment[] getReadOnlyAddresses() {

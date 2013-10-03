@@ -15,7 +15,7 @@ import xdi2.core.xri3.XDI3Segment;
 import xdi2.core.xri3.XDI3Statement;
 import xdi2.core.xri3.XDI3SubSegment;
 
-public abstract class XdiAbstractRoot extends XdiAbstractContext implements XdiRoot {
+public abstract class XdiAbstractRoot extends XdiAbstractContext<XdiRoot> implements XdiRoot {
 
 	private static final long serialVersionUID = 8157589883719452790L;
 
@@ -37,7 +37,7 @@ public abstract class XdiAbstractRoot extends XdiAbstractContext implements XdiR
 	 */
 	public static boolean isValid(ContextNode contextNode) {
 
-		if (log.isTraceEnabled()) log.trace("isValid(" + contextNode + ")");
+		if (contextNode == null) return false;
 
 		return
 				XdiLocalRoot.isValid(contextNode) ||
@@ -51,8 +51,6 @@ public abstract class XdiAbstractRoot extends XdiAbstractContext implements XdiR
 	 * @return The XDI root.
 	 */
 	public static XdiRoot fromContextNode(ContextNode contextNode) {
-
-		if (log.isTraceEnabled()) log.trace("fromContextNode(" + contextNode + ")");
 
 		XdiRoot xdiRoot;
 

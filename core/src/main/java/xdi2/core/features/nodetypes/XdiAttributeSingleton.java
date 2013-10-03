@@ -13,7 +13,7 @@ import xdi2.core.xri3.XDI3SubSegment;
  * 
  * @author markus
  */
-public final class XdiAttributeSingleton extends XdiAbstractSingleton implements XdiAttribute {
+public final class XdiAttributeSingleton extends XdiAbstractSingleton<XdiAttribute> implements XdiAttribute {
 
 	private static final long serialVersionUID = -5769813522592588864L;
 
@@ -33,6 +33,8 @@ public final class XdiAttributeSingleton extends XdiAbstractSingleton implements
 	 */
 	public static boolean isValid(ContextNode contextNode) {
 
+		if (contextNode == null) return false;
+		
 		return isValidArcXri(contextNode.getArcXri());
 	}
 

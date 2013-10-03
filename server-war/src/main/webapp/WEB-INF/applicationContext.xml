@@ -15,7 +15,7 @@
 				<bean class="xdi2.server.interceptor.impl.XriResolutionHttpTransportInterceptor">
 					<property name="resolvePath" value="/resolve" />
 					<property name="targetPath" value="/users" />
-					<property name="registryGraph" ref="registrygraph" />
+					<property name="registryGraph" ref="registryGraph" />
 				</bean>
 			</util:list>
 		</property>
@@ -26,10 +26,7 @@
 	<bean id="conversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
 		<property name="converters">
 			<list>
-				<bean class="xdi2.server.spring.StringXDI3StatementConverter" />
-				<bean class="xdi2.server.spring.StringXDI3SegmentConverter" />
-				<bean class="xdi2.server.spring.StringXDI3SubSegmentConverter" />
-				<bean class="xdi2.server.spring.StringXDI3XRefConverter" />
+				<bean class="xdi2.server.spring.XDI2SpringConverter" />
 			</list>
 		</property>
 	</bean>
@@ -45,32 +42,6 @@
 		</property>
 		<property name="facebookMapping">
 			<bean class="xdi2.connector.facebook.mapping.FacebookMapping" />
-		</property>
-	</bean>
-
-	<bean id="personalContributor" class="xdi2.connector.personal.contributor.PersonalContributor">
-		<property name="personalApi">
-			<bean class="xdi2.connector.personal.api.PersonalApi" init-method="init" destroy-method="destroy">
-				<property name="appId" value="2hmsfwb28jkmtuetxzk82x7r" />
-				<property name="appSecret" value="CyhuffsrBqdTfzTAsdMB9D6v" />
-				<property name="scope" value="read_0000,read_0001" />
-				<property name="update" value="true" />
-			</bean>
-		</property>
-		<property name="personalMapping">
-			<bean class="xdi2.connector.personal.mapping.PersonalMapping" />
-		</property>
-	</bean>
-
-	<bean id="allfiledContributor" class="xdi2.connector.allfiled.contributor.AllfiledContributor">
-		<property name="allfiledApi">
-			<bean class="xdi2.connector.allfiled.api.AllfiledApi" init-method="init" destroy-method="destroy">
-				<property name="appId" value="1372" />
-				<property name="appSecret" value="cRiet3ezo5cieniaqlubRi6MIedri15oUziupriek9a24oAstl" />
-			</bean>
-		</property>
-		<property name="allfiledMapping">
-			<bean class="xdi2.connector.allfiled.mapping.AllfiledMapping" />
 		</property>
 	</bean>
 
@@ -94,22 +65,18 @@
 					<property name="secretTokenAuthenticator">
 						<bean class="xdi2.messaging.target.interceptor.impl.authentication.secrettoken.GraphSecretTokenAuthenticator">
 							<property name="globalSalt" value="00000000-0000-0000-0000-000000000000" />
-							<property name="secretTokenGraph" ref="registrygraph" />
+							<property name="secretTokenGraph" ref="registryGraph" />
 						</bean>
 					</property>
 				</bean>
 				<bean class="xdi2.messaging.target.interceptor.impl.linkcontract.LinkContractInterceptor" />
 				<ref bean="facebookContributor" />
-				<ref bean="personalContributor" />
-				<ref bean="allfiledContributor" />
 			</util:list>
 		</property>
 		<property name="contributors">
-			<util:map>
-				<entry key="+(https://facebook.com/)" value-ref="facebookContributor" />
-				<entry key="+(https://personal.com/)" value-ref="personalContributor" />
-				<entry key="+(https://allfiled.com/)" value-ref="allfiledContributor" />
-			</util:map>
+			<util:list>
+				<ref bean="facebookContributor" />
+			</util:list>
 		</property>
 	</bean>
 
@@ -121,22 +88,22 @@
 
 	<!-- MESSAGING TARGET FACTORY at /users/* -->
 
-	<bean id="registrygraphfactory" class="xdi2.core.impl.wrapped.file.FileWrapperGraphFactory">
+	<bean id="registryGraphfactory" class="xdi2.core.impl.wrapped.file.FileWrapperGraphFactory">
 		<property name="path" value="registry.xdi" />
 		<property name="mimeType" value="text/xdi;ordered=1" />
 	</bean>
 
-	<bean id="registrygraph" factory-bean="registrygraphfactory" factory-method="openGraph" />
+	<bean id="registryGraph" factory-bean="registryGraphfactory" factory-method="openGraph" />
 
 	<bean name="/users/*" class="xdi2.server.factory.impl.RegistryGraphMessagingTargetFactory">
 		<property name="prototypeMessagingTarget" ref="prototypeMessagingTarget" />
-		<property name="registryGraph" ref="registrygraph" />
+		<property name="registryGraph" ref="registryGraph" />
 	</bean>
 
 	<!-- REGISTRY MESSAGING TARGET -->
 
 	<bean name="/registry" class="xdi2.messaging.target.impl.graph.GraphMessagingTarget">
-		<property name="graph" ref="registrygraph" />
+		<property name="graph" ref="registryGraph" />
 		<property name="interceptors">
 			<util:list>
 				<bean class="xdi2.messaging.target.interceptor.impl.BootstrapInterceptor">
@@ -158,15 +125,13 @@
 							<property name="globalSalt" value="00000000-0000-0000-0000-000000000000" />
 							<property name="localSaltAndDigestSecretTokens">
 								<util:map>
-									<entry key="[=]!:uuid:bdf301fb-e70c-3958-bdf3-01fbe70c3958" value="xdi2-digest:00000000-0000-0000-0000-000000000000:8ae57d7c635e3f14b072850ac9cc88cdf8873661548a0c943eb4840a6fe426766fd4a087019f24467ba96990e5ff55e63111f1eb416981b4cf897cb2f45f57ac" />
+									<entry key="[=]!:uuid:bdf301fb-e70c-3958-bdf3-01fbe70c3958" value="xdi2-digest:00000000-0000-0000-0000-000000000000:a7292f2347aef29a9e4c05d35764019106143a339b6e9bb39faee53103e1d6f55e49213d77d16a326a91bab0fc6885779d04e2e4470125720860cf54f872b3bb" />
 								</util:map>
 							</property>
 						</bean>
 					</property>
 				</bean>
-				<bean class="xdi2.messaging.target.interceptor.impl.linkcontract.LinkContractInterceptor">
-					<property name="linkContractsGraph" ref="registrygraph" />
-				</bean>
+				<bean class="xdi2.messaging.target.interceptor.impl.linkcontract.LinkContractInterceptor" />
 			</util:list>
 		</property>
 	</bean>
@@ -246,9 +211,7 @@
 				<bean class="xdi2.messaging.target.interceptor.impl.VariablesInterceptor" />
 				<bean class="xdi2.messaging.target.interceptor.impl.RefInterceptor" />
 				<bean class="xdi2.messaging.target.interceptor.impl.ToInterceptor" />
-				<bean class="xdi2.messaging.target.interceptor.impl.linkcontract.LinkContractInterceptor">
-					<property name="linkContractsGraph" ref="graph4" />
-				</bean>
+				<bean class="xdi2.messaging.target.interceptor.impl.linkcontract.LinkContractInterceptor" />
 			</util:list>
 		</property>
 	</bean>

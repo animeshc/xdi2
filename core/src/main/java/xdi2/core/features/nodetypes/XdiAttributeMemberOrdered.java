@@ -12,7 +12,7 @@ import xdi2.core.xri3.XDI3SubSegment;
  * 
  * @author markus
  */
-public final class XdiAttributeMemberOrdered extends XdiAbstractMemberOrdered<XdiAttributeCollection, XdiAttributeMemberUnordered, XdiAttributeMemberOrdered, XdiAttributeMember> implements XdiAttributeMember {
+public final class XdiAttributeMemberOrdered extends XdiAbstractMemberOrdered<XdiAttribute, XdiAttributeCollection, XdiAttributeMemberUnordered, XdiAttributeMemberOrdered, XdiAttributeMember> implements XdiAttributeMember {
 
 	private static final long serialVersionUID = 3562576098019686485L;
 
@@ -31,6 +31,8 @@ public final class XdiAttributeMemberOrdered extends XdiAbstractMemberOrdered<Xd
 	 * @return True if the context node is a valid XDI ordered attribute instance.
 	 */
 	public static boolean isValid(ContextNode contextNode) {
+
+		if (contextNode == null) return false;
 
 		return
 				isValidArcXri(contextNode.getArcXri()) &&

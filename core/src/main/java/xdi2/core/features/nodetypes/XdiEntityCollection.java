@@ -13,7 +13,7 @@ import xdi2.core.xri3.XDI3SubSegment;
  * 
  * @author markus
  */
-public final class XdiEntityCollection extends XdiAbstractCollection<XdiEntityCollection, XdiEntityMemberUnordered, XdiEntityMemberOrdered, XdiEntityMember> implements XdiCollection<XdiEntityCollection, XdiEntityMemberUnordered, XdiEntityMemberOrdered, XdiEntityMember> {
+public final class XdiEntityCollection extends XdiAbstractCollection<XdiEntity, XdiEntityCollection, XdiEntityMemberUnordered, XdiEntityMemberOrdered, XdiEntityMember> implements XdiCollection<XdiEntity, XdiEntityCollection, XdiEntityMemberUnordered, XdiEntityMemberOrdered, XdiEntityMember> {
 
 	private static final long serialVersionUID = -8518618921427437445L;
 
@@ -32,6 +32,8 @@ public final class XdiEntityCollection extends XdiAbstractCollection<XdiEntityCo
 	 * @return True if the context node is a valid XDI entity class.
 	 */
 	public static boolean isValid(ContextNode contextNode) {
+
+		if (contextNode == null) return false;
 
 		return 
 				isValidArcXri(contextNode.getArcXri()) &&

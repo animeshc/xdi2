@@ -13,7 +13,7 @@ import xdi2.core.util.iterators.MappingIterator;
 import xdi2.core.util.iterators.NotNullIterator;
 import xdi2.core.xri3.XDI3SubSegment;
 
-public abstract class XdiAbstractMemberUnordered<C extends XdiCollection<C, U, O, I>, U extends XdiMemberUnordered<C, U, O, I>, O extends XdiMemberOrdered<C, U, O, I>, I extends XdiMember<C, U, O, I>> extends XdiAbstractMember<C, U, O, I> implements XdiMemberUnordered<C, U, O, I> {
+public abstract class XdiAbstractMemberUnordered<EQ extends XdiSubGraph<EQ>, C extends XdiCollection<EQ, C, U, O, I>, U extends XdiMemberUnordered<EQ, C, U, O, I>, O extends XdiMemberOrdered<EQ, C, U, O, I>, I extends XdiMember<EQ, C, U, O, I>> extends XdiAbstractMember<EQ, C, U, O, I> implements XdiMemberUnordered<EQ, C, U, O, I> {
 
 	private static final long serialVersionUID = -8496645644143069191L;
 
@@ -33,6 +33,8 @@ public abstract class XdiAbstractMemberUnordered<C extends XdiCollection<C, U, O
 	 */
 	public static boolean isValid(ContextNode contextNode) {
 
+		if (contextNode == null) return false;
+
 		return XdiEntityMemberUnordered.isValid(contextNode) || 
 				XdiAttributeMemberUnordered.isValid(contextNode);
 	}
@@ -42,9 +44,9 @@ public abstract class XdiAbstractMemberUnordered<C extends XdiCollection<C, U, O
 	 * @param contextNode The context node that is an XDI unordered instance.
 	 * @return The XDI unordered instance.
 	 */
-	public static XdiMemberUnordered<?, ?, ?, ?> fromContextNode(ContextNode contextNode) {
+	public static XdiMemberUnordered<?, ?, ?, ?, ?> fromContextNode(ContextNode contextNode) {
 
-		XdiMemberUnordered<?, ?, ?, ?> xdiMember;
+		XdiMemberUnordered<?, ?, ?, ?, ?> xdiMember;
 
 		if ((xdiMember = XdiEntityMemberUnordered.fromContextNode(contextNode)) != null) return xdiMember;
 		if ((xdiMember = XdiAttributeMemberUnordered.fromContextNode(contextNode)) != null) return xdiMember;
@@ -112,14 +114,14 @@ public abstract class XdiAbstractMemberUnordered<C extends XdiCollection<C, U, O
 	 * Helper classes
 	 */
 
-	public static class MappingContextNodeXdiMemberUnorderedIterator extends NotNullIterator<XdiMemberUnordered<?, ?, ?, ?>> {
+	public static class MappingContextNodeXdiMemberUnorderedIterator extends NotNullIterator<XdiMemberUnordered<?, ?, ?, ?, ?>> {
 
 		public MappingContextNodeXdiMemberUnorderedIterator(Iterator<ContextNode> contextNodes) {
 
-			super(new MappingIterator<ContextNode, XdiMemberUnordered<?, ?, ?, ?>> (contextNodes) {
+			super(new MappingIterator<ContextNode, XdiMemberUnordered<?, ?, ?, ?, ?>> (contextNodes) {
 
 				@Override
-				public XdiMemberUnordered<?, ?, ?, ?> map(ContextNode contextNode) {
+				public XdiMemberUnordered<?, ?, ?, ?, ?> map(ContextNode contextNode) {
 
 					return XdiAbstractMemberUnordered.fromContextNode(contextNode);
 				}

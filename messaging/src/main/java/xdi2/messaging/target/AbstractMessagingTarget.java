@@ -1,9 +1,6 @@
 package xdi2.messaging.target;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +13,7 @@ import xdi2.messaging.MessageEnvelope;
 import xdi2.messaging.MessageResult;
 import xdi2.messaging.Operation;
 import xdi2.messaging.exceptions.Xdi2MessagingException;
-import xdi2.messaging.target.contributor.Contributor;
 import xdi2.messaging.target.contributor.ContributorMap;
-import xdi2.messaging.target.interceptor.Interceptor;
 import xdi2.messaging.target.interceptor.InterceptorList;
 
 /**
@@ -93,9 +88,9 @@ public abstract class AbstractMessagingTarget implements MessagingTarget {
 
 			executionContext.pushMessageEnvelope(messageEnvelope, null);
 
-			// clear execution context
+			// reset execution context
 
-			executionContext.clearMessageEnvelopeAttributes();
+			executionContext.resetMessageEnvelopeAttributes();
 
 			// before message envelope
 
@@ -191,9 +186,9 @@ public abstract class AbstractMessagingTarget implements MessagingTarget {
 
 			executionContext.pushMessage(message, null);
 
-			// clear execution context
+			// reset execution context
 
-			executionContext.clearMessageAttributes();
+			executionContext.resetMessageAttributes();
 
 			// before message
 
@@ -262,9 +257,9 @@ public abstract class AbstractMessagingTarget implements MessagingTarget {
 
 			executionContext.pushOperation(operation, null);
 
-			// clear execution context
+			// reset execution context
 
-			executionContext.clearOperationAttributes();
+			executionContext.resetOperationAttributes();
 
 			// before operation
 
@@ -487,12 +482,6 @@ public abstract class AbstractMessagingTarget implements MessagingTarget {
 		this.interceptors = interceptors;
 	}
 
-	public void setInterceptors(List<Interceptor> interceptors) {
-
-		this.interceptors.clear();
-		this.interceptors.addAll(interceptors);
-	}
-
 	public ContributorMap getContributors() {
 
 		return this.contributors;
@@ -501,17 +490,5 @@ public abstract class AbstractMessagingTarget implements MessagingTarget {
 	public void setContributors(ContributorMap contributors) {
 
 		this.contributors = contributors;
-	}
-
-	public void setContributors(Map<XDI3Segment, List<Contributor>> contributors) {
-
-		this.contributors.clear();
-		this.contributors.putAll(contributors);
-	}
-
-	public void setContributorsList(ArrayList<Contributor> contributors) {
-
-		this.contributors.clear();
-		for (Contributor contributor : contributors) this.contributors.addContributor(contributor);
 	}
 }

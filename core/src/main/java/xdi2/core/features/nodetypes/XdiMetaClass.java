@@ -13,7 +13,7 @@ import xdi2.core.xri3.XDI3SubSegment;
  * 
  * @author markus
  */
-public class XdiMetaClass extends XdiAbstractSubGraph {
+public class XdiMetaClass extends XdiAbstractSubGraph<XdiMetaClass> {
 
 	private static final long serialVersionUID = -96625188324691432L;
 
@@ -32,6 +32,8 @@ public class XdiMetaClass extends XdiAbstractSubGraph {
 	 * @return True if the context node is a valid XDI metaclass.
 	 */
 	public static boolean isValid(ContextNode contextNode) {
+
+		if (contextNode == null) return false;
 
 		return isValidArcXri(contextNode.getArcXri());
 	}

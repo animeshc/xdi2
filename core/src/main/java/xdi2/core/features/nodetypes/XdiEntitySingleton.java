@@ -13,7 +13,7 @@ import xdi2.core.xri3.XDI3SubSegment;
  * 
  * @author markus
  */
-public final class XdiEntitySingleton extends XdiAbstractSingleton implements XdiEntity {
+public final class XdiEntitySingleton extends XdiAbstractSingleton<XdiEntity> implements XdiEntity {
 
 	private static final long serialVersionUID = 7600443284706530972L;
 
@@ -32,6 +32,8 @@ public final class XdiEntitySingleton extends XdiAbstractSingleton implements Xd
 	 * @return True if the context node is a valid XDI entity singleton.
 	 */
 	public static boolean isValid(ContextNode contextNode) {
+
+		if (contextNode == null) return false;
 
 		return 
 				isValidArcXri(contextNode.getArcXri()) &&
