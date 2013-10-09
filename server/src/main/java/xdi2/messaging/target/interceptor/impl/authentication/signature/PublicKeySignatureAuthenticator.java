@@ -6,6 +6,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import xdi2.core.features.signatures.KeyPairSignature;
 import xdi2.core.features.signatures.Signature;
 import xdi2.messaging.Message;
 
@@ -22,12 +23,18 @@ public abstract class PublicKeySignatureAuthenticator extends AbstractSignatureA
 	}
 
 	@Override
-	public boolean authenticate(Message message, Signature signature) {
+	public boolean authenticate(Message message, Signature<?, ?> signature) {
+
+		// check signature type
+
+		if (! (signature instanceof KeyPairSignature)) return false;
+
+		// obtain public key
 
 		PublicKey publicKey = this.getPublicKey(message);
 
 		if (publicKey == null) {
-			
+
 			if (log.isDebugEnabled()) log.debug("No public key found for sender " + message.getSenderXri());
 
 			return false;
@@ -36,12 +43,12 @@ public abstract class PublicKeySignatureAuthenticator extends AbstractSignatureA
 		if (log.isDebugEnabled()) log.debug("Public key found for sender " + message.getSenderXri() + ": " + Base64.encodeBase64String(publicKey.getEncoded()));
 
 		// authenticate
-		
+
 		boolean authenticated;
-		
+
 		try {
 
-			authenticated = signature.validateSignature(publicKey);
+			authenticated = ((KeyPairSignature) signature).validate(publicKey);
 		} catch (Exception ex) {
 
 			if (log.isWarnEnabled()) log.warn("Cannot validate signature: " + ex.getMessage(), ex);

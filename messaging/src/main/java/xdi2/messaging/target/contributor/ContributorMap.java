@@ -21,6 +21,7 @@ import xdi2.messaging.MessageResult;
 import xdi2.messaging.Operation;
 import xdi2.messaging.exceptions.Xdi2MessagingException;
 import xdi2.messaging.target.ExecutionContext;
+import xdi2.messaging.target.MessagingTarget;
 import xdi2.messaging.target.Prototype;
 
 public class ContributorMap extends LinkedHashMap<XDI3Segment, List<Contributor>> implements Iterable<Contributor>, Prototype<ContributorMap> {
@@ -71,9 +72,9 @@ public class ContributorMap extends LinkedHashMap<XDI3Segment, List<Contributor>
 
 	public void addContributor(Contributor contributor) {
 
-		ContributorXri contributorCall = contributor.getClass().getAnnotation(ContributorXri.class);
+		String[] addresses = contributor.getAddresses();
 
-		for (String address : contributorCall.addresses()) {
+		for (String address : addresses) {
 
 			this.addContributor(XDI3Segment.create(address), contributor);
 		}
@@ -146,6 +147,42 @@ public class ContributorMap extends LinkedHashMap<XDI3Segment, List<Contributor>
 	 * Methods for executing contributors
 	 */
 
+	public void initContributors(MessagingTarget messagingTarget) throws Exception {
+
+		for (Iterator<Contributor> contributors = this.iterator(); contributors.hasNext(); ) {
+
+			Contributor contributor = contributors.next();
+
+			if (! contributor.isEnabled()) {
+
+				if (log.isDebugEnabled()) log.debug("Skipping disabled contributor:" + contributor.getClass().getSimpleName() + " (init).");
+				continue;
+			}
+
+			if (log.isDebugEnabled()) log.debug("Executing contributor " + contributor.getClass().getSimpleName() + " (init).");
+
+			contributor.init(messagingTarget);
+		}
+	}
+
+	public void shutdownContributors(MessagingTarget messagingTarget) throws Exception {
+
+		for (Iterator<Contributor> contributors = this.iterator(); contributors.hasNext(); ) {
+
+			Contributor contributor = contributors.next();
+
+			if (! contributor.isEnabled()) {
+
+				if (log.isDebugEnabled()) log.debug("Skipping disabled contributor: " + contributor.getClass().getSimpleName() + " (shutdown).");
+				continue;
+			}
+
+			if (log.isDebugEnabled()) log.debug("Executing contributor " + contributor.getClass().getSimpleName() + " (shutdown).");
+
+			contributor.shutdown(messagingTarget);
+		}
+	}
+
 	public boolean executeContributorsAddress(XDI3Segment[] contributorChainXris, XDI3Segment relativeTargetAddress, Operation operation, MessageResult operationMessageResult, ExecutionContext executionContext) throws Xdi2MessagingException {
 
 		// find an address with contributors
@@ -168,7 +205,7 @@ public class ContributorMap extends LinkedHashMap<XDI3Segment, List<Contributor>
 
 			if (! contributor.isEnabled()) {
 
-				if (log.isDebugEnabled()) log.debug("Skipping disabled contributor: " + contributor.getClass().getSimpleName()+ " (address).");
+				if (log.isDebugEnabled()) log.debug("Skipping disabled contributor " + contributor.getClass().getSimpleName() + " with operation " + operation.getOperationXri() + " on contributorXri " + contributorXri + " and relative target address " + relativeTargetAddress + ".");
 				continue;
 			}
 
@@ -180,11 +217,9 @@ public class ContributorMap extends LinkedHashMap<XDI3Segment, List<Contributor>
 
 			XDI3Segment nextContributorChainXri = XDI3Util.concatXris(nextContributorChainXris);
 
-			if (log.isDebugEnabled()) log.debug("Next contributor chain XRIs: " + Arrays.asList(nextContributorChainXris) + ", next contributor chain XRI: " + nextContributorChainXri + ", next relative target address: " + nextRelativeTargetAddress);
-
 			// execute the contributor
 
-			if (log.isDebugEnabled()) log.debug("Executing contributor " + contributor.getClass().getSimpleName() + " (address).");
+			if (log.isDebugEnabled()) log.debug("Executing contributor " + contributor.getClass().getSimpleName() + " with operation " + operation.getOperationXri() + " on contributor XRI " + contributorXri + " and relative target address " + relativeTargetAddress + "." + " Next contributor chain XRI is " + nextContributorChainXri + ", and next relative target address is " + nextRelativeTargetAddress + ".");
 
 			try {
 
@@ -251,7 +286,7 @@ public class ContributorMap extends LinkedHashMap<XDI3Segment, List<Contributor>
 
 			if (! contributor.isEnabled()) {
 
-				if (log.isDebugEnabled()) log.debug("Skipping disabled contributor: " + contributor.getClass().getSimpleName()+ " (statement).");
+				if (log.isDebugEnabled()) log.debug("Skipping disabled contributor " + contributor.getClass().getSimpleName() + " with operation " + operation.getOperationXri() + " on contributorXri " + contributorXri + " and relative target statement " + relativeTargetStatement + ".");
 				continue;
 			}
 
@@ -263,11 +298,9 @@ public class ContributorMap extends LinkedHashMap<XDI3Segment, List<Contributor>
 
 			XDI3Segment nextContributorChainXri = XDI3Util.concatXris(nextContributorChainXris);
 
-			if (log.isDebugEnabled()) log.debug("Next contributor chain XRIs: " + Arrays.asList(nextContributorChainXris) + ", next contributor chain XRI: " + nextContributorChainXri + ", next relative target statement: " + nextRelativeTargetStatement);
-
 			// execute the contributors
 
-			if (log.isDebugEnabled()) log.debug("Executing contributor " + contributor.getClass().getSimpleName() + " (statement).");
+			if (log.isDebugEnabled()) log.debug("Executing contributor " + contributor.getClass().getSimpleName() + " with operation " + operation.getOperationXri() + " on contributor XRI " + contributorXri + " and relative target statement " + relativeTargetStatement + "." + " Next contributor chain XRI is " + nextContributorChainXri + ", and next relative target statement is " + nextRelativeTargetStatement + ".");
 
 			try {
 

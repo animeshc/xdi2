@@ -1,6 +1,7 @@
 package xdi2.messaging.target.contributor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +17,7 @@ import xdi2.messaging.Operation;
 import xdi2.messaging.SetOperation;
 import xdi2.messaging.exceptions.Xdi2MessagingException;
 import xdi2.messaging.target.ExecutionContext;
+import xdi2.messaging.target.MessagingTarget;
 import xdi2.messaging.target.impl.graph.GraphContextHandler;
 
 public abstract class AbstractContributor implements Contributor {
@@ -27,6 +29,20 @@ public abstract class AbstractContributor implements Contributor {
 
 		this.enabled = true;
 		this.contributors = new ContributorMap();
+	}
+
+	/*
+	 * Init and shutdown
+	 */
+
+	@Override
+	public void init(MessagingTarget messagingTarget) throws Exception {
+
+	}
+
+	@Override
+	public void shutdown(MessagingTarget messagingTarget) throws Exception {
+
 	}
 
 	/*
@@ -240,6 +256,25 @@ public abstract class AbstractContributor implements Contributor {
 	public boolean executeDoOnLiteralStatement(XDI3Segment[] contributorXris, XDI3Segment contributorsXri, XDI3Statement relativeTargetStatement, DoOperation operation, MessageResult messageResult, ExecutionContext executionContext) throws Xdi2MessagingException {
 
 		return false;
+	}
+
+	/*
+	 * Contributor addresses
+	 */
+
+	@Override
+	public String[] getAddresses() {
+
+		ContributorXri contributorXri = this.getClass().getAnnotation(ContributorXri.class);
+		if (contributorXri == null) throw new NullPointerException("No ContributorXri annotation on contributor " + this.getClass().getSimpleName());
+
+		return contributorXri.addresses();
+	}
+
+	@Override
+	public boolean containsAddress(String address) {
+
+		return Arrays.asList(this.getAddresses()).contains(address);
 	}
 
 	/*

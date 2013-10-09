@@ -10,9 +10,44 @@ import xdi2.messaging.MessageResult;
 import xdi2.messaging.Operation;
 import xdi2.messaging.exceptions.Xdi2MessagingException;
 import xdi2.messaging.target.ExecutionContext;
+import xdi2.messaging.target.MessagingTarget;
 
 public interface Contributor {
 
+	/*
+	 * Init and shutdown
+	 */
+
+	public void init(MessagingTarget messagingTarget) throws Exception;
+	public void shutdown(MessagingTarget messagingTarget) throws Exception;
+
+	/*
+	 * Contributor addresses
+	 */
+
+	public String[] getAddresses();
+	public boolean containsAddress(String address);
+
+	/*
+	 * Enabled?
+	 */
+
+	public boolean isEnabled();
+	public void setEnabled(boolean enabled);
+
+	/*
+	 * Sub-contributors
+	 */
+
+	public ContributorMap getContributors();
+	public void setContributors(ContributorMap contributors);
+	public void setContributors(Map<XDI3Segment, List<Contributor>> contributors);
+	public void setContributorsList(ArrayList<Contributor> contributors);
+
+	/*
+	 * Contributor methods
+	 */
+	
 	/**
 	 * Executes an XDI operation on an address.
 	 * @param contributorChainXris The individual XRIs in the contributor chain.
@@ -36,20 +71,4 @@ public interface Contributor {
 	 * @return True, if the operation has been fully handled and the server should stop processing it.
 	 */
 	public boolean executeOnStatement(XDI3Segment[] contributorChainXris, XDI3Segment contributorChainXri, XDI3Statement relativeTargetStatement, Operation operation, MessageResult operationMessageResult, ExecutionContext executionContext) throws Xdi2MessagingException;
-
-	/*
-	 * Enabled?
-	 */
-	
-	public boolean isEnabled();
-	public void setEnabled(boolean enabled);
-	
-	/*
-	 * Sub-contributors
-	 */
-
-	public ContributorMap getContributors();
-	public void setContributors(ContributorMap contributors);
-	public void setContributors(Map<XDI3Segment, List<Contributor>> contributors);
-	public void setContributorsList(ArrayList<Contributor> contributors);
 }

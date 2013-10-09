@@ -9,6 +9,7 @@ import java.security.Key;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.RSAKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
@@ -28,8 +29,10 @@ import org.slf4j.LoggerFactory;
 
 import xdi2.core.ContextNode;
 import xdi2.core.Graph;
+import xdi2.core.features.signatures.KeyPairSignature;
 import xdi2.core.features.signatures.Signature;
 import xdi2.core.features.signatures.Signatures;
+import xdi2.core.features.signatures.SymmetricKeySignature;
 import xdi2.core.impl.memory.MemoryGraphFactory;
 import xdi2.core.io.XDIReader;
 import xdi2.core.io.XDIReaderRegistry;
@@ -48,10 +51,16 @@ public class XDISigner extends javax.servlet.http.HttpServlet implements javax.s
 
 	private static Logger log = LoggerFactory.getLogger(XDISigner.class);
 
+	public static String DEFAULT_DIGEST_ALGORITHM = "sha";
+	public static String DEFAULT_DIGEST_LENGTH = "256";
+	public static String DEFAULT_KEY_ALGORITHM = "rsa";
+	public static String DEFAULT_KEY_LENGTH = "2048";
+
 	private static MemoryGraphFactory graphFactory;
 	private static List<String> sampleInputs;
 	private static List<String> sampleKeys;
 	private static List<String> sampleAddresses;
+	private static List<String> sampleDigestAndKeySettings;
 
 	static {
 
@@ -61,15 +70,18 @@ public class XDISigner extends javax.servlet.http.HttpServlet implements javax.s
 		sampleInputs = new ArrayList<String> ();
 		sampleKeys = new ArrayList<String> ();
 		sampleAddresses = new ArrayList<String> ();
+		sampleDigestAndKeySettings = new ArrayList<String> ();
 
 		while (true) {
 
 			InputStream inputStream1 = XDISigner.class.getResourceAsStream("graph" + (sampleInputs.size() + 1) + ".xdi");
 			InputStream inputStream2 = XDISigner.class.getResourceAsStream("key" + (sampleKeys.size() + 1));
 			InputStream inputStream3 = XDISigner.class.getResourceAsStream("address" + (sampleAddresses.size() + 1));
+			InputStream inputStream4 = XDISigner.class.getResourceAsStream("digestandkeysettings" + (sampleAddresses.size() + 1));
 			ByteArrayOutputStream outputStream1 = new ByteArrayOutputStream();
 			ByteArrayOutputStream outputStream2 = new ByteArrayOutputStream();
 			ByteArrayOutputStream outputStream3 = new ByteArrayOutputStream();
+			ByteArrayOutputStream outputStream4 = new ByteArrayOutputStream();
 			int i;
 
 			try {
@@ -77,9 +89,11 @@ public class XDISigner extends javax.servlet.http.HttpServlet implements javax.s
 				while ((i = inputStream1.read()) != -1) outputStream1.write(i);
 				while ((i = inputStream2.read()) != -1) outputStream2.write(i);
 				while ((i = inputStream3.read()) != -1) outputStream3.write(i);
+				while ((i = inputStream4.read()) != -1) outputStream4.write(i);
 				sampleInputs.add(new String(outputStream1.toByteArray()));
 				sampleKeys.add(new String(outputStream2.toByteArray()));
 				sampleAddresses.add(new String(outputStream3.toByteArray()));
+				sampleDigestAndKeySettings.add(new String(outputStream4.toByteArray()));
 			} catch (Exception ex) {
 
 				break;
@@ -90,9 +104,11 @@ public class XDISigner extends javax.servlet.http.HttpServlet implements javax.s
 					inputStream1.close();
 					inputStream2.close();
 					inputStream3.close();
+					inputStream4.close();
 					outputStream1.close();
 					outputStream2.close();
 					outputStream3.close();
+					outputStream4.close();
 				} catch (Exception ex) {
 
 				}
@@ -115,8 +131,10 @@ public class XDISigner extends javax.servlet.http.HttpServlet implements javax.s
 		request.setAttribute("input", sampleInputs.get(Integer.parseInt(sample) - 1));
 		request.setAttribute("key", sampleKeys.get(Integer.parseInt(sample) - 1));
 		request.setAttribute("address", sampleAddresses.get(Integer.parseInt(sample) - 1));
-		request.setAttribute("signatureAlgorithm", Signature.DEFAULT_SIGNATURE_ALGORITHM);
-		request.setAttribute("hmacAlgorithm", Signature.DEFAULT_HMAC_ALGORITHM);
+		request.setAttribute("digestAlgorithm", sampleDigestAndKeySettings.get(Integer.parseInt(sample) - 1).split("/")[0]);
+		request.setAttribute("digestLength", sampleDigestAndKeySettings.get(Integer.parseInt(sample) - 1).split("/")[1]);
+		request.setAttribute("keyAlgorithm", sampleDigestAndKeySettings.get(Integer.parseInt(sample) - 1).split("/")[2]);
+		request.setAttribute("keyLength", sampleDigestAndKeySettings.get(Integer.parseInt(sample) - 1).split("/")[3]);
 
 		request.getRequestDispatcher("/XDISigner.jsp").forward(request, response);
 	}
@@ -132,8 +150,10 @@ public class XDISigner extends javax.servlet.http.HttpServlet implements javax.s
 		String input = request.getParameter("input");
 		String key = request.getParameter("key");
 		String address = request.getParameter("address");
-		String signatureAlgorithm = request.getParameter("signatureAlgorithm");
-		String hmacAlgorithm = request.getParameter("hmacAlgorithm");
+		String digestAlgorithm = request.getParameter("digestAlgorithm");
+		String digestLength = request.getParameter("digestLength");
+		String keyAlgorithm = request.getParameter("keyAlgorithm");
+		String keyLength = request.getParameter("keyLength");
 		String submit = request.getParameter("submit");
 		String output = "";
 		String output2 = "";
@@ -152,7 +172,7 @@ public class XDISigner extends javax.servlet.http.HttpServlet implements javax.s
 
 		Graph graph = null;
 		Key k = null;
-		Signature signature = null;
+		Signature<?, ?> signature = null;
 		Boolean valid = null;
 
 		long start = System.currentTimeMillis();
@@ -172,40 +192,41 @@ public class XDISigner extends javax.servlet.http.HttpServlet implements javax.s
 
 			// sign or validate
 
-			if ("Create RSA Signature!".equals(submit)) {
+			if ("Sign!".equals(submit)) {
 
-				signature = Signatures.getSignature(contextNode, true);
+				signature = Signatures.setSignature(contextNode, digestAlgorithm, Integer.parseInt(digestLength), keyAlgorithm, Integer.parseInt(keyLength));
 
-				PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.decodeBase64(key));
-				KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-				k = keyFactory.generatePrivate(keySpec);
+				if (signature instanceof KeyPairSignature) {
 
-				signature.createSignature((PrivateKey) k, signatureAlgorithm);
-			} else if ("Validate RSA Signature!".equals(submit)) {
+					PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.decodeBase64(key));
+					KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+					k = keyFactory.generatePrivate(keySpec);
 
-				signature = Signatures.getSignature(contextNode, false);
+					((KeyPairSignature) signature).sign((PrivateKey) k);
+				} else if (signature instanceof SymmetricKeySignature) {
+
+					k = new SecretKeySpec(Base64.decodeBase64(key), "AES");
+
+					((SymmetricKeySignature) signature).sign((SecretKey) k);
+				}
+			} else if ("Validate!".equals(submit)) {
+
+				signature = Signatures.getSignature(contextNode);
 				if (signature == null) throw new RuntimeException("No signature found at address " + address);
 
-				X509EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.decodeBase64(key));
-				KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-				k = keyFactory.generatePublic(keySpec);
+				if (signature instanceof KeyPairSignature) {
 
-				valid = Boolean.valueOf(signature.validateSignature((PublicKey) k, signatureAlgorithm));
-			} else if ("Create AES HMAC!".equals(submit)) {
+					X509EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.decodeBase64(key));
+					KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+					k = keyFactory.generatePublic(keySpec);
 
-				signature = Signatures.getSignature(contextNode, true);
+					valid = Boolean.valueOf(((KeyPairSignature) signature).validate((PublicKey) k));
+				} else if (signature instanceof SymmetricKeySignature) {
 
-				k = new SecretKeySpec(Base64.decodeBase64(key), "AES");
+					k = new SecretKeySpec(Base64.decodeBase64(key), "AES");
 
-				signature.createHMAC((SecretKey) k, hmacAlgorithm);
-			} else if ("Validate AES HMAC!".equals(submit)) {
-
-				signature = Signatures.getSignature(contextNode, false);
-				if (signature == null) throw new RuntimeException("No HMAC found at address " + address);
-
-				k = new SecretKeySpec(Base64.decodeBase64(key), "AES");
-
-				valid = Boolean.valueOf(signature.validateHMAC((SecretKey) k, hmacAlgorithm));
+					valid = Boolean.valueOf(((SymmetricKeySignature) signature).validate((SecretKey) k));
+				}
 			}
 
 			// output the graph or result
@@ -230,7 +251,7 @@ public class XDISigner extends javax.servlet.http.HttpServlet implements javax.s
 
 		if (signature != null) {
 
-			output2 = signature.getNormalizedSerialization();
+			output2 = Signature.getNormalizedSerialization(signature.getBaseContextNode());
 		}
 
 		long stop = System.currentTimeMillis();
@@ -240,6 +261,7 @@ public class XDISigner extends javax.servlet.http.HttpServlet implements javax.s
 		if (k != null) stats += "Key algorithm: " + k.getAlgorithm() + ". ";
 		if (k != null) stats += "Key format: " + k.getFormat() + ". ";
 		if (k != null) stats += "Key encoded length: " + k.getEncoded().length + ". ";
+		if (k != null && k instanceof RSAKey) stats += "RSA key modulus length: " + ((RSAKey) k).getModulus().bitLength() + ". ";
 		if (graph != null) stats += Long.toString(graph.getRootContextNode().getAllStatementCount()) + " result statement(s). ";
 
 		// display results
@@ -253,8 +275,10 @@ public class XDISigner extends javax.servlet.http.HttpServlet implements javax.s
 		request.setAttribute("input", input);
 		request.setAttribute("key", key);
 		request.setAttribute("address", address);
-		request.setAttribute("signatureAlgorithm", signatureAlgorithm);
-		request.setAttribute("hmacAlgorithm", hmacAlgorithm);
+		request.setAttribute("digestAlgorithm", digestAlgorithm);
+		request.setAttribute("digestLength", digestLength);
+		request.setAttribute("keyAlgorithm", keyAlgorithm);
+		request.setAttribute("keyLength", keyLength);
 		request.setAttribute("output", output);
 		request.setAttribute("output2", output2);
 		request.setAttribute("stats", stats);
