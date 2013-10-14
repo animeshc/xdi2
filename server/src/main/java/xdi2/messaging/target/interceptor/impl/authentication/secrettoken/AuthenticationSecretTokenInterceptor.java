@@ -91,7 +91,7 @@ public class AuthenticationSecretTokenInterceptor extends AbstractInterceptor im
 		XdiValue secretTokenValidXdiValue = secretTokenValidXdiAttribute.getXdiValue(true);
 		Literal secretTokenValidLiteral = secretTokenValidXdiValue.getContextNode().setLiteralBoolean(Boolean.valueOf(authenticated));
 
-		if (log.isDebugEnabled()) log.debug(secretTokenValidLiteral.getStatement().toString());
+		if (log.isDebugEnabled()) log.debug("Valid: " + secretTokenValidLiteral.getStatement());
 
 		// done
 

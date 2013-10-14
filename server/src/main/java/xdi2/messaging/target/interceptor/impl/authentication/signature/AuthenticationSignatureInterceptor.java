@@ -92,7 +92,7 @@ public class AuthenticationSignatureInterceptor extends AbstractInterceptor impl
 		XdiValue signatureValidXdiValue = signatureValidXdiAttribute.getXdiValue(true);
 		Literal signatureValidLiteral = signatureValidXdiValue.getContextNode().setLiteralBoolean(Boolean.valueOf(authenticated));
 
-		if (log.isDebugEnabled()) log.debug(signatureValidLiteral.getStatement().toString());
+		if (log.isDebugEnabled()) log.debug("Valid: " + signatureValidLiteral.getStatement());
 
 		// done
 
